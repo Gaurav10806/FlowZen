@@ -1,53 +1,39 @@
-# FLOWZEN
+# 🚀 Flowzen
 
-A productivity and workflow management application designed to improve task organization, efficiency, and user experience.
+A productivity-focused web application designed to streamline task management and improve workflow efficiency.
 
 ---
 
-## 🚀 Overview
-Flowzen is a web-based application focused on simplifying task flow and improving productivity.  
-It allows users to manage workflows efficiently with an intuitive interface and structured logic.
+## 📸 Preview
+
+<p align="center">
+  <img src="https://via.placeholder.com/900x500?text=Add+Your+Flowzen+Screenshot" width="700"/>
+</p>
+
+---
+
+## 🧠 Overview
+
+Flowzen is a lightweight web application that helps users organize tasks and manage workflows efficiently.  
+It focuses on simplicity, usability, and structured task flow.
 
 ---
 
 ## ✨ Features
-- Task creation and management  
-- Workflow organization  
-- Clean and user-friendly interface  
-- Real-time interaction (if applicable)  
-- Responsive design  
+
+- 📝 Task creation and management  
+- 🔄 Organized workflow structure  
+- 🎯 Clean and minimal UI  
+- 📱 Responsive design  
 
 ---
 
 ## ⚙️ Tech Stack
 
-### Frontend
-- HTML  
-- CSS  
-- JavaScript  
-
-### Backend *(if applicable, add honestly)*
-- —  
-
-### Database *(if used)*
-- —  
+- Frontend: HTML, CSS, JavaScript  
+- Backend: —  
+- Database: —  
 
 ---
-
-FLOWZEN/
-│── index.html  
-│── style.css  
-│── script.js  
-│── assets/  
-
-
----
-
-## 🛠️ Installation & Setup
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/Gaurav10806/FLOWZEN.git
-cd FLOWZEN
 
 ## 📂 Project Structure
