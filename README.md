@@ -34,4 +34,20 @@ It allows users to manage workflows efficiently with an intuitive interface and 
 
 ---
 
+FLOWZEN/
+│── index.html  
+│── style.css  
+│── script.js  
+│── assets/  
+
+
+---
+
+## 🛠️ Installation & Setup
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/Gaurav10806/FLOWZEN.git
+cd FLOWZEN
+
 ## 📂 Project Structure
