@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Create Template - FLOWZEN{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Create Workflow Template</h1>
+                <a href="{% url 'templates_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Templates
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Template Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="template-form" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Template Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="form-text">A descriptive name for this workflow template</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category *</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select category...</option>
+                                <option value="communication">Communication</option>
+                                <option value="data_processing">Data Processing</option>
+                                <option value="automation">Automation</option>
+                                <option value="integration">Integration</option>
+                                <option value="monitoring">Monitoring</option>
+                                <option value="ai_ml">AI/ML</option>
+                                <option value="business">Business</option>
+                                <option value="development">Development</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="finance">Finance</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" name="description" rows="4"
+                                required></textarea>
+                            <div class="form-text">Describe what this template does and when to use it</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tags" class="form-label">Tags</label>
+                            <input type="text" class="form-control" id="tags" name="tags"
+                                placeholder="email, notification, slack">
+                            <div class="form-text">Comma-separated tags to help users find this template</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="difficulty" class="form-label">Difficulty Level</label>
+                            <select class="form-select" id="difficulty" name="difficulty">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate" selected>Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                                <option value="expert">Expert</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="icon" class="form-label">Template Icon</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i id="icon-preview" class="fas fa-cog"></i>
+                                </span>
+                                <input type="text" class="form-control" id="icon" name="icon" value="fas fa-cog"
+                                    placeholder="fas fa-cog">
+                            </div>
+                            <div class="form-text">FontAwesome icon class (e.g., fas fa-envelope, fab fa-slack)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Template Image</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <div class="form-text">Optional preview image for the template (PNG, JPG, max 2MB)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="workflow_data" class="form-label">Workflow Definition *</label>
+                            <textarea class="form-control" id="workflow_data" name="workflow_data" rows="10" required
+                                placeholder='{"nodes": [], "connections": []}'></textarea>
+                            <div class="form-text">JSON definition of the workflow (nodes and connections)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="required_credentials" class="form-label">Required Credentials</label>
+                            <select class="form-select" id="required_credentials" name="required_credentials" multiple>
+                                <option value="gmail">Gmail OAuth</option>
+                                <option value="slack">Slack API</option>
+                                <option value="discord">Discord Bot</option>
+                                <option value="http_auth">HTTP Authentication</option>
+                                <option value="database">Database Connection</option>
+                                <option value="api_key">API Key</option>
+                                <option value="oauth2">OAuth 2.0</option>
+                            </select>
+                            <div class="form-text">Hold Ctrl/Cmd to select multiple credential types</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="setup_instructions" class="form-label">Setup Instructions</label>
+                            <textarea class="form-control" id="setup_instructions" name="setup_instructions"
+                                rows="6"></textarea>
+                            <div class="form-text">Step-by-step instructions for users to set up this template</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_public" name="is_public" checked>
+                                <label class="form-check-label" for="is_public">
+                                    Public Template
+                                </label>
+                                <div class="form-text">Make this template available to all users</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured">
+                                <label class="form-check-label" for="is_featured">
+                                    Featured Template
+                                </label>
+                                <div class="form-text">Show this template in the featured section</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Create Template
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="preview-template">
+                                <i class="fas fa-eye me-2"></i>Preview
+                            </button>
+                            <button type="button" class="btn btn-outline-info" id="import-workflow">
+                                <i class="fas fa-upload me-2"></i>Import from Workflow
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Template Preview</h6>
+                </div>
+                <div class="card-body">
+                    <div class="template-preview">
+                        <div class="template-card">
+                            <div class="template-icon">
+                                <i id="preview-icon" class="fas fa-cog fa-2x"></i>
+                            </div>
+                            <h6 id="preview-name">Template Name</h6>
+                            <p id="preview-description" class="text-muted small">Template description will appear
+                                here...</p>
+                            <div class="template-meta">
+                                <span id="preview-category" class="badge bg-primary">Category</span>
+                                <span id="preview-difficulty" class="badge bg-secondary">Intermediate</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Template Categories</h6>
+                </div>
+                <div class="card-body">
+                    <div class="category-info">
+                        <div class="mb-2">
+                            <strong>Communication:</strong> Email, chat, notifications
+                        </div>
+                        <div class="mb-2">
+                            <strong>Data Processing:</strong> ETL, transformations, analysis
+                        </div>
+                        <div class="mb-2">
+                            <strong>Automation:</strong> Task automation, scheduling
+                        </div>
+                        <div class="mb-2">
+                            <strong>Integration:</strong> API connections, webhooks
+                        </div>
+                        <div class="mb-2">
+                            <strong>Monitoring:</strong> Health checks, alerts
+                        </div>
+                        <div class="mb-2">
+                            <strong>AI/ML:</strong> Machine learning, AI workflows
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tip:</strong> Use clear, descriptive names and provide detailed setup instructions to
+                        help users understand and use your template effectively.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('template-form');
+        const nameInput = document.getElementById('name');
+        const categorySelect = document.getElementById('category');
+        const descriptionInput = document.getElementById('description');
+        const iconInput = document.getElementById('icon');
+        const difficultySelect = document.getElementById('difficulty');
+
+        // Preview elements
+        const previewIcon = document.getElementById('preview-icon');
+        const previewName = document.getElementById('preview-name');
+        const previewDescription = document.getElementById('preview-description');
+        const previewCategory = document.getElementById('preview-category');
+        const previewDifficulty = document.getElementById('preview-difficulty');
+        const iconPreview = document.getElementById('icon-preview');
+
+        // Update preview in real-time
+        function updatePreview() {
+            previewName.textContent = nameInput.value || 'Template Name';
+            previewDescription.textContent = descriptionInput.value || 'Template description will appear here...';
+            previewCategory.textContent = categorySelect.options[categorySelect.selectedIndex]?.text || 'Category';
+            previewDifficulty.textContent = difficultySelect.options[difficultySelect.selectedIndex]?.text || 'Intermediate';
+
+            const iconClass = iconInput.value || 'fas fa-cog';
+            previewIcon.className = iconClass + ' fa-2x';
+            iconPreview.className = iconClass;
+        }
+
+        // Add event listeners for real-time preview
+        nameInput.addEventListener('input', updatePreview);
+        categorySelect.addEventListener('change', updatePreview);
+        descriptionInput.addEventListener('input', updatePreview);
+        iconInput.addEventListener('input', updatePreview);
+        difficultySelect.addEventListener('change', updatePreview);
+
+        // Preview button
+        document.getElementById('preview-template').addEventListener('click', function () {
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            // Open preview in new window/modal
+            alert('Template preview functionality will be implemented here.');
+        });
+
+        // Import workflow button
+        document.getElementById('import-workflow').addEventListener('click', function () {
+            // Open workflow import dialog
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        try {
+                            const workflowData = JSON.parse(e.target.result);
+                            document.getElementById('workflow_data').value = JSON.stringify(workflowData, null, 2);
+
+                            // Auto-fill some fields if available
+                            if (workflowData.name) {
+                                nameInput.value = workflowData.name;
+                            }
+                            if (workflowData.description) {
+                                descriptionInput.value = workflowData.description;
+                            }
+
+                            updatePreview();
+                        } catch (error) {
+                            alert('Invalid workflow file: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        });
+
+        // Form submission
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('/api/v1/templates/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.id) {
+                        window.location.href = '/templates/';
+                    } else {
+                        alert('Error creating template: ' + JSON.stringify(data));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error creating template');
+                });
+        });
+
+        // Initialize preview
+        updatePreview();
+    });
+</script>
+
+<style>
+    .template-preview {
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .template-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .template-icon {
+        margin-bottom: 15px;
+        color: #007bff;
+    }
+
+    .template-meta {
+        margin-top: 15px;
+    }
+
+    .template-meta .badge {
+        margin-right: 5px;
+    }
+
+    .category-info div {
+        font-size: 0.9em;
+    }
+</style>
+{% endblock %}

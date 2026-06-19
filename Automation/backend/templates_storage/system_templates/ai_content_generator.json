@@ -1,0 +1,42 @@
+{
+    "name": "AI Content Generator",
+    "description": "Generate blog posts and marketing copy using AI",
+    "category": "ai",
+    "difficulty": "beginner",
+    "nodes": [
+        {
+            "id": "trigger",
+            "type": "webhook",
+            "position": {
+                "x": 100,
+                "y": 200
+            }
+        },
+        {
+            "id": "ai",
+            "type": "ai-agent",
+            "position": {
+                "x": 300,
+                "y": 200
+            }
+        },
+        {
+            "id": "response",
+            "type": "http_response",
+            "position": {
+                "x": 500,
+                "y": 200
+            }
+        }
+    ],
+    "edges": [
+        {
+            "source": "trigger",
+            "target": "ai"
+        },
+        {
+            "source": "ai",
+            "target": "response"
+        }
+    ]
+}

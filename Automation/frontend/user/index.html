@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Dashboard - User Interface</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/user-theme.css" rel="stylesheet">
+    <link href="css/replay.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+</head>
+
+<body class="user-theme">
+    <div id="app" class="user-app">
+        <!-- Top Navigation -->
+        <nav class="user-navbar">
+            <div class="navbar-left">
+                <div class="brand">
+                    <i class="fas fa-magic"></i>
+                    <span>Workflow Hub</span>
+                </div>
+            </div>
+            <div class="navbar-center">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search workflows..." id="global-search">
+                </div>
+            </div>
+            <div class="navbar-right">
+                <button class="user-btn secondary">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                <button class="user-btn secondary">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+                <div class="user-profile">
+                    <img src="https://via.placeholder.com/32x32/4f46e5/ffffff?text=U" alt="User" class="profile-avatar">
+                    <span class="profile-name" id="user-profile-name">John Doe</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-container">
+            <!-- Sidebar Navigation -->
+            <aside class="user-sidebar">
+                <nav class="sidebar-nav">
+                    <a href="#dashboard" class="nav-item active">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#workflows" class="nav-item">
+                        <i class="fas fa-play-circle"></i>
+                        <span>My Workflows</span>
+                    </a>
+                    <a href="#templates" class="nav-item">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Templates</span>
+                    </a>
+                    <a href="#history" class="nav-item">
+                        <i class="fas fa-history"></i>
+                        <span>History</span>
+                    </a>
+                    <a href="#integrations" class="nav-item">
+                        <i class="fas fa-plug"></i>
+                        <span>Integrations</span>
+                    </a>
+                </nav>
+
+                <div class="sidebar-footer">
+                    <div class="usage-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Executions this month</span>
+                            <span class="stat-value" id="sidebar-executions-count">1,247</span>
+                        </div>
+                        <div class="usage-bar">
+                            <div class="usage-fill" style="width: 65%"></div>
+                        </div>
+                        <span class="usage-text">65% of 2,000 limit</span>
+                    </div>
+                    <button class="user-btn primary full-width">
+                        <i class="fas fa-crown"></i>
+                        Upgrade Plan
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="content-area">
+                <!-- Dashboard View -->
+                <div id="dashboard-view" class="view active">
+                    <!-- Welcome Header -->
+                    <div class="welcome-header">
+                        <div class="welcome-content">
+                            <h1 id="welcome-message">Welcome back, John! 👋</h1>
+                            <p>Here's what's happening with your workflows today.</p>
+                        </div>
+                        <button class="user-btn primary large">
+                            <i class="fas fa-plus"></i>
+                            Create Workflow
+                        </button>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="stat-success-count">156</h3>
+                                <p>Successful Runs</p>
+                                <span class="stat-change positive">+12% from last week</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon warning">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="stat-pending-count">23</h3>
+                                <p>Pending Tasks</p>
+                                <span class="stat-change neutral">2 require attention</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon info">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="stat-active-count">8</h3>
+                                <p>Active Workflows</p>
+                                <span class="stat-change positive">+2 this week</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon error">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="stat-failed-count">3</h3>
+                                <p>Failed Runs</p>
+                                <span class="stat-change negative">Needs review</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Section (New) -->
+                    <div class="section">
+                        <h2>Analytics Overview</h2>
+                        <div class="analytics-card">
+                            <div id="analytics-loading">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #6366f1;"></i>
+                            </div>
+                            <img id="weekly-analytics-graph" src="" alt="Execution Analytics">
+                            <div id="analytics-error">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Failed to load analytics</p>
+                                <button class="user-btn secondary small" onclick="loadAnalytics()">Retry</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="section">
+                        <h2>Quick Actions</h2>
+                        <div class="quick-actions-grid">
+                            <div class="action-card">
+                                <div class="action-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <h3>Email Automation</h3>
+                                <p>Send personalized emails to your customers</p>
+                                <button class="user-btn secondary">Use Template</button>
+                            </div>
+                            <div class="action-card">
+                                <div class="action-icon">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                                <h3>Data Sync</h3>
+                                <p>Synchronize data between your applications</p>
+                                <button class="user-btn secondary">Use Template</button>
+                            </div>
+                            <div class="action-card">
+                                <div class="action-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <h3>Report Generation</h3>
+                                <p>Generate automated reports and insights</p>
+                                <button class="user-btn secondary">Use Template</button>
+                            </div>
+                            <div class="action-card">
+                                <div class="action-icon">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <h3>Notifications</h3>
+                                <p>Set up smart notifications and alerts</p>
+                                <button class="user-btn secondary">Use Template</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="section">
+                        <div class="section-header">
+                            <h2>Recent Activity</h2>
+                            <button class="user-btn secondary small">View All</button>
+                        </div>
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-icon success">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Email Campaign Completed</h4>
+                                    <p>Successfully sent 1,250 emails to subscribers</p>
+                                    <span class="activity-time">2 minutes ago</span>
+                                </div>
+                                <div class="activity-actions">
+                                    <button class="user-btn secondary small">View Details</button>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon warning">
+                                    <i class="fas fa-exclamation"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Data Sync Warning</h4>
+                                    <p>Some records failed to sync with CRM system</p>
+                                    <span class="activity-time">15 minutes ago</span>
+                                </div>
+                                <div class="activity-actions">
+                                    <button class="user-btn secondary small">Fix Issues</button>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon info">
+                                    <i class="fas fa-info"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>New Template Available</h4>
+                                    <p>Social Media Automation template is now available</p>
+                                    <span class="activity-time">1 hour ago</span>
+                                </div>
+                                <div class="activity-actions">
+                                    <button class="user-btn secondary small">Explore</button>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon success">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Workflow Created</h4>
+                                    <p>Customer Onboarding workflow has been created</p>
+                                    <span class="activity-time">3 hours ago</span>
+                                </div>
+                                <div class="activity-actions">
+                                    <button class="user-btn secondary small">Configure</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workflows View -->
+                <div id="workflows-view" class="view">
+                    <div class="view-header">
+                        <h1>My Workflows</h1>
+                        <div class="view-actions">
+                            <div class="filter-dropdown">
+                                <button class="user-btn secondary">
+                                    <i class="fas fa-filter"></i>
+                                    Filter
+                                </button>
+                            </div>
+                            <button class="user-btn primary">
+                                <i class="fas fa-plus"></i>
+                                New Workflow
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="workflows-grid">
+                        <div class="workflow-card">
+                            <div class="workflow-header">
+                                <div class="workflow-status active">
+                                    <i class="fas fa-circle"></i>
+                                    Active
+                                </div>
+                                <div class="workflow-menu">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </div>
+                            </div>
+                            <div class="workflow-content">
+                                <h3>Customer Email Sequence</h3>
+                                <p>Automated welcome email series for new customers</p>
+                                <div class="workflow-stats">
+                                    <span class="stat">
+                                        <i class="fas fa-play"></i>
+                                        45 runs
+                                    </span>
+                                    <span class="stat">
+                                        <i class="fas fa-clock"></i>
+                                        Last run: 2h ago
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="workflow-actions">
+                                <button class="user-btn secondary small">
+                                    <i class="fas fa-play"></i>
+                                    Run Now
+                                </button>
+                                <button class="user-btn secondary small">
+                                    <i class="fas fa-edit"></i>
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="workflow-card">
+                            <div class="workflow-header">
+                                <div class="workflow-status paused">
+                                    <i class="fas fa-pause"></i>
+                                    Paused
+                                </div>
+                                <div class="workflow-menu">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </div>
+                            </div>
+                            <div class="workflow-content">
+                                <h3>Lead Scoring System</h3>
+                                <p>Automatically score and route leads based on behavior</p>
+                                <div class="workflow-stats">
+                                    <span class="stat">
+                                        <i class="fas fa-play"></i>
+                                        128 runs
+                                    </span>
+                                    <span class="stat">
+                                        <i class="fas fa-clock"></i>
+                                        Last run: 1d ago
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="workflow-actions">
+                                <button class="user-btn primary small">
+                                    <i class="fas fa-play"></i>
+                                    Resume
+                                </button>
+                                <button class="user-btn secondary small">
+                                    <i class="fas fa-edit"></i>
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="workflow-card">
+                            <div class="workflow-header">
+                                <div class="workflow-status active">
+                                    <i class="fas fa-circle"></i>
+                                    Active
+                                </div>
+                                <div class="workflow-menu">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </div>
+                            </div>
+                            <div class="workflow-content">
+                                <h3>Social Media Posting</h3>
+                                <p>Schedule and post content across social platforms</p>
+                                <div class="workflow-stats">
+                                    <span class="stat">
+                                        <i class="fas fa-play"></i>
+                                        89 runs
+                                    </span>
+                                    <span class="stat">
+                                        <i class="fas fa-clock"></i>
+                                        Last run: 30m ago
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="workflow-actions">
+                                <button class="user-btn secondary small">
+                                    <i class="fas fa-play"></i>
+                                    Run Now
+                                </button>
+                                <button class="user-btn secondary small">
+                                    <i class="fas fa-edit"></i>
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="workflow-card">
+                            <div class="workflow-header">
+                                <div class="workflow-status error">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Error
+                                </div>
+                                <div class="workflow-menu">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </div>
+                            </div>
+                            <div class="workflow-content">
+                                <h3>Inventory Management</h3>
+                                <p>Monitor stock levels and reorder automatically</p>
+                                <div class="workflow-stats">
+                                    <span class="stat">
+                                        <i class="fas fa-play"></i>
+                                        67 runs
+                                    </span>
+                                    <span class="stat">
+                                        <i class="fas fa-clock"></i>
+                                        Last run: 4h ago
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="workflow-actions">
+                                <button class="user-btn warning small">
+                                    <i class="fas fa-wrench"></i>
+                                    Fix Issues
+                                </button>
+                                <button class="user-btn secondary small">
+                                    <i class="fas fa-edit"></i>
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simple Workflow Builder -->
+                <div id="builder-view" class="view">
+                    <div class="builder-header">
+                        <div class="builder-title">
+                            <input type="text" class="workflow-title-input" value="New Workflow"
+                                placeholder="Enter workflow name">
+                        </div>
+                        <div class="builder-actions">
+                            <button class="user-btn secondary">
+                                <i class="fas fa-save"></i>
+                                Save Draft
+                            </button>
+                            <button class="user-btn primary">
+                                <i class="fas fa-play"></i>
+                                Test Run
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="builder-content">
+                        <div class="builder-sidebar">
+                            <h3>Add Steps</h3>
+                            <div class="step-categories">
+                                <div class="step-category">
+                                    <h4><i class="fas fa-bolt"></i> Triggers</h4>
+                                    <div class="step-items">
+                                        <div class="step-item" data-type="webhook">
+                                            <i class="fas fa-link"></i>
+                                            <span>Webhook</span>
+                                        </div>
+                                        <div class="step-item" data-type="schedule">
+                                            <i class="fas fa-clock"></i>
+                                            <span>Schedule</span>
+                                        </div>
+                                        <div class="step-item" data-type="email">
+                                            <i class="fas fa-envelope"></i>
+                                            <span>Email Received</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="step-category">
+                                    <h4><i class="fas fa-cogs"></i> Actions</h4>
+                                    <div class="step-items">
+                                        <div class="step-item" data-type="send-email">
+                                            <i class="fas fa-paper-plane"></i>
+                                            <span>Send Email</span>
+                                        </div>
+                                        <div class="step-item" data-type="http-request">
+                                            <i class="fas fa-globe"></i>
+                                            <span>HTTP Request</span>
+                                        </div>
+                                        <div class="step-item" data-type="database">
+                                            <i class="fas fa-database"></i>
+                                            <span>Database</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="builder-canvas">
+                            <div class="canvas-placeholder">
+                                <div class="placeholder-content">
+                                    <i class="fas fa-mouse-pointer"></i>
+                                    <h3>Start Building Your Workflow</h3>
+                                    <p>Drag and drop steps from the sidebar to create your automation</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab" id="create-workflow-fab">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <!-- Notification Toast -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="../js/core/api.js"></script>
+    <script src="../js/wow-effects.js"></script>
+    <!-- <script src="../js/canvas.js"></script> Removed: Superseded by advanced-canvas.js -->
+    <script src="../js/core/advanced-canvas.js"></script>
+    <script src="../js/core/replay-manager.js"></script>
+    <script src="../js/enhanced-node-library.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+
+</html>

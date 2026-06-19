@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - FlowZen Automation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        glass: "rgba(255, 255, 255, 0.05)",
+                        glassBorder: "rgba(255, 255, 255, 0.1)",
+                        primary: "#3b82f6",
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-field {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Background Glow */
+        .glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="glow"></div>
+
+    <div class="glass-card w-full max-w-md p-8 rounded-2xl relative z-10">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                FlowZen</h1>
+            <p class="text-gray-400 text-sm mt-2">Secure Automation Platform</p>
+        </div>
+
+        <!-- STEP 1: Email Input -->
+        <form onsubmit="return false;">
+            <div id="step-1" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
+                    <input type="email" id="email" class="w-full px-4 py-3 rounded-lg input-field"
+                        placeholder="name@gmail.com" onkeypress="if(event.key === 'Enter') sendOTP()">
+                </div>
+
+                <button onclick="sendOTP()" id="btn-send" class="w-full btn-primary py-3 rounded-lg font-bold mt-4">Send
+                    Login Code</button>
+            </div>
+
+            <!-- STEP 2: OTP Input -->
+            <div id="step-2" class="space-y-4 hidden">
+                <div class="text-center mb-4">
+                    <p class="text-gray-300 text-sm">Code sent to <span id="display-email"
+                            class="font-bold text-blue-400"></span></p>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Verification Code</label>
+                    <input type="text" id="otp-code"
+                        class="w-full px-4 py-3 rounded-lg input-field text-center text-2xl tracking-[10px]"
+                        maxlength="6" placeholder="000000" onkeypress="if(event.key === 'Enter') verifyOTP()">
+                </div>
+
+                <button onclick="verifyOTP()" id="btn-verify"
+                    class="w-full btn-primary py-3 rounded-lg font-bold mt-4">Verify & Login</button>
+
+                <button onclick="backToEmail()" class="w-full py-2 text-sm text-gray-500 hover:text-gray-300 mt-2">Back
+                    to
+                    Email</button>
+            </div>
+        </form>
+
+        <!-- Status Message -->
+        <div id="status-msg" class="mt-4 text-center text-sm hidden"></div>
+    </div>
+
+    <script>
+        async function sendOTP() {
+            const email = document.getElementById('email').value;
+            const btn = document.getElementById('btn-send');
+            const statusDiv = document.getElementById('status-msg');
+
+            if (!email) {
+                showError("Please enter your email");
+                return;
+            }
+
+            setLoading(btn, true);
+            statusDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/auth/send-otp/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStep2(email);
+                } else {
+                    // Handle all possible error formats from DRF/middleware
+                    const errorMsg = (typeof data.error === 'string' ? data.error : null)
+                        || (typeof data.detail === 'string' ? data.detail : null)
+                        || (typeof data.message === 'string' ? data.message : null)
+                        || "Failed to send OTP";
+                    showError(errorMsg);
+                }
+            } catch (e) {
+                showError("Network error. Please try again.");
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function verifyOTP() {
+            const email = document.getElementById('email').value;
+            const code = document.getElementById('otp-code').value;
+            const btn = document.getElementById('btn-verify');
+
+            if (!code || code.length < 6) {
+                showError("Please enter the 6-digit code");
+                return;
+            }
+
+            setLoading(btn, true);
+
+            try {
+                const response = await fetch('/api/auth/verify-otp/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Success! Store tokens
+                    localStorage.setItem('access_token', data.access);
+                    localStorage.setItem('refresh_token', data.refresh);
+                    localStorage.setItem('user_role', data.user.role);
+
+                    // Redirect to home
+                    window.location.href = '/';
+                } else {
+                    showError(data.error || "Invalid code");
+                }
+            } catch (e) {
+                showError("Verification failed");
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        function showStep2(email) {
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+            document.getElementById('display-email').innerText = email;
+            document.getElementById('otp-code').focus();
+        }
+
+        function backToEmail() {
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-1').classList.remove('hidden');
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('status-msg');
+            el.innerText = msg;
+            el.className = "mt-4 text-center text-sm text-red-400 font-medium animate-pulse";
+            el.classList.remove('hidden');
+        }
+
+        function setLoading(btn, isLoading) {
+            if (isLoading) {
+                btn.disabled = true;
+                btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            } else {
+                btn.disabled = false;
+                btn.innerText = btn.id === 'btn-send' ? "Send Login Code" : "Verify & Login";
+            }
+        }
+    </script>
+
+</body>
+
+</html>

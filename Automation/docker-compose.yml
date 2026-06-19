@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: flowzen_backend
+    restart: always
+    command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn project.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./frontend:/app/frontend
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Worker for asynchronous tasks (Celery)
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: flowzen_worker
+    restart: always
+    command: celery -A project worker --loglevel=info
+    volumes:
+      - ./backend:/app
+      - ./frontend:/app/frontend
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    depends_on:
+      - backend
+      - redis
+
+  # Scheduler for background tasks (Celery Beat)
+  beat:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: flowzen_beat
+    restart: always
+    command: celery -A project beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ./backend:/app
+      - ./frontend:/app/frontend
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    depends_on:
+      - backend
+      - redis
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: flowzen_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-automation}
+      POSTGRES_USER: ${DATABASE_USER:-automation}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-automation}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USER:-automation}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+
+  # Redis for Caching and Celery Broker
+  redis:
+    image: redis:7-alpine
+    container_name: flowzen_redis
+    restart: always
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    ports:
+      - "6380:6379"
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:

@@ -1,0 +1,3474 @@
+{
+  "delay": {
+    "node_type": "delay",
+    "display_name": "Delay",
+    "description": "Pause workflow execution for a specified duration",
+    "category": "utilities",
+    "python_class": "workflows.nodes.utility_nodes.DelayNode",
+    "module_path": "workflows.nodes.utility_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "seconds",
+            "minutes",
+            "hours",
+            "days"
+          ],
+          "default": "seconds",
+          "title": "Delay Unit"
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 1440,
+          "default": 1,
+          "title": "Delay Duration"
+        },
+        "max_delay": {
+          "type": "integer",
+          "default": 86400,
+          "title": "Maximum Allowed Delay (seconds)",
+          "description": "Safety limit for delay duration"
+        }
+      },
+      "required": [
+        "type",
+        "value"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-25T17:32:05.117061",
+    "updated_at": "2025-12-25T17:32:05.117061"
+  },
+  "webhook_trigger": {
+    "node_type": "webhook_trigger",
+    "display_name": "Webhook Trigger",
+    "description": "Triggers workflow when webhook endpoint is called",
+    "category": "triggers",
+    "python_class": "workflows.nodes.trigger_nodes.WebhookTriggerNode",
+    "module_path": "workflows.nodes.trigger_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "title": "Webhook Path",
+          "description": "URL path for webhook endpoint (e.g., /webhook/customer-signup)",
+          "pattern": "^/.*"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH"
+          ],
+          "default": "POST",
+          "title": "HTTP Method",
+          "description": "HTTP method that triggers the webhook"
+        },
+        "authentication": {
+          "type": "string",
+          "enum": [
+            "none",
+            "basic",
+            "bearer",
+            "hmac",
+            "query_param"
+          ],
+          "default": "none",
+          "title": "Authentication Method",
+          "description": "How to authenticate incoming webhook requests"
+        },
+        "auth_config": {
+          "type": "object",
+          "title": "Authentication Configuration",
+          "description": "Configuration for the selected authentication method",
+          "properties": {
+            "username": {
+              "type": "string",
+              "title": "Username"
+            },
+            "password": {
+              "type": "string",
+              "title": "Password",
+              "format": "password"
+            },
+            "token": {
+              "type": "string",
+              "title": "Bearer Token",
+              "format": "password"
+            },
+            "secret": {
+              "type": "string",
+              "title": "HMAC Secret",
+              "format": "password"
+            },
+            "param_name": {
+              "type": "string",
+              "title": "Query Parameter Name"
+            },
+            "param_value": {
+              "type": "string",
+              "title": "Expected Parameter Value"
+            }
+          }
+        },
+        "required_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Fields",
+          "description": "Fields that must be present in webhook payload"
+        },
+        "response_config": {
+          "type": "object",
+          "title": "Response Configuration",
+          "properties": {
+            "status_code": {
+              "type": "integer",
+              "default": 200,
+              "title": "Response Status Code"
+            },
+            "response_body": {
+              "type": "object",
+              "title": "Response Body",
+              "default": {
+                "status": "received"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "path"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-25T17:32:05.117061",
+    "updated_at": "2025-12-25T17:32:05.117061"
+  },
+  "manual_trigger": {
+    "node_type": "manual_trigger",
+    "display_name": "Manual Trigger",
+    "description": "Triggers workflow when manually executed (for testing)",
+    "category": "triggers",
+    "python_class": "workflows.nodes.trigger_nodes.ManualTriggerNode",
+    "module_path": "workflows.nodes.trigger_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "test_data": {
+          "type": "object",
+          "title": "Test Data",
+          "description": "Static test data to use when manually triggering workflow",
+          "default": {
+            "test": true,
+            "sample_data": "This is test data"
+          }
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "description": "Description of what this manual trigger is for",
+          "default": "Manual execution for testing"
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-25T17:32:05.118257",
+    "updated_at": "2025-12-25T17:32:05.118257"
+  },
+  "slack_message": {
+    "node_type": "slack_message",
+    "display_name": "Send Slack Message",
+    "description": "Send messages to Slack channels or direct messages",
+    "category": "actions",
+    "python_class": "workflows.nodes.action_nodes.SlackMessageNode",
+    "module_path": "workflows.nodes.action_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "string",
+          "title": "Channel",
+          "description": "Slack channel or user (e.g., #general, @username) - supports templates"
+        },
+        "message": {
+          "type": "string",
+          "title": "Message",
+          "description": "Message text to send (supports templates)"
+        },
+        "webhook_url": {
+          "type": "string",
+          "title": "Webhook URL",
+          "description": "Slack webhook URL (if using webhook method)",
+          "format": "uri"
+        },
+        "bot_token": {
+          "type": "string",
+          "title": "Bot Token",
+          "description": "Slack bot token (if using API method)",
+          "format": "password"
+        },
+        "username": {
+          "type": "string",
+          "title": "Bot Username",
+          "description": "Custom username for the bot (webhook only)"
+        },
+        "icon_emoji": {
+          "type": "string",
+          "title": "Icon Emoji",
+          "description": "Emoji to use as bot icon (e.g., :robot_face:)"
+        },
+        "icon_url": {
+          "type": "string",
+          "title": "Icon URL",
+          "description": "URL of image to use as bot icon",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "channel",
+        "message"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-25T17:32:05.121743",
+    "updated_at": "2025-12-25T17:32:15.377250"
+  },
+  "conditional": {
+    "node_type": "conditional",
+    "display_name": "IF / ELSE Condition",
+    "description": "Branch workflow execution based on simple IF/ELSE conditions",
+    "category": "utilities",
+    "python_class": "workflows.nodes.conditional_node.ConditionalNode",
+    "module_path": "workflows.nodes.conditional_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "left_operand": {
+          "type": "string",
+          "title": "Left Operand",
+          "description": "Left side of comparison (field path, template, or literal value)",
+          "examples": [
+            "user.email",
+            "{{order.total}}",
+            "100",
+            "active"
+          ]
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "equals",
+            "not_equals",
+            "greater_than",
+            "greater_equal",
+            "less_than",
+            "less_equal",
+            "contains",
+            "not_contains",
+            "starts_with",
+            "ends_with",
+            "exists",
+            "not_exists",
+            "is_empty",
+            "is_not_empty",
+            "regex_match",
+            "in_list",
+            "not_in_list"
+          ],
+          "title": "Operator",
+          "description": "Comparison operator",
+          "default": "equals"
+        },
+        "right_operand": {
+          "type": "string",
+          "title": "Right Operand",
+          "description": "Right side of comparison (field path, template, or literal value)",
+          "examples": [
+            "admin@example.com",
+            "{{config.threshold}}",
+            "0",
+            "true"
+          ]
+        },
+        "case_sensitive": {
+          "type": "boolean",
+          "title": "Case Sensitive",
+          "description": "Whether string comparisons should be case sensitive",
+          "default": true
+        }
+      },
+      "required": [
+        "left_operand",
+        "operator"
+      ],
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-27T15:46:06.240052",
+    "updated_at": "2025-12-27T15:46:06.240052"
+  },
+  "if_else": {
+    "node_type": "if_else",
+    "display_name": "IF / ELSE",
+    "description": "Simple IF/ELSE conditional logic",
+    "category": "utilities",
+    "python_class": "workflows.nodes.conditional_node.IfElseNode",
+    "module_path": "workflows.nodes.conditional_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "left_operand": {
+          "type": "string",
+          "title": "Left Operand",
+          "description": "Left side of comparison (field path, template, or literal value)",
+          "examples": [
+            "user.email",
+            "{{order.total}}",
+            "100",
+            "active"
+          ]
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "equals",
+            "not_equals",
+            "greater_than",
+            "greater_equal",
+            "less_than",
+            "less_equal",
+            "contains",
+            "not_contains",
+            "starts_with",
+            "ends_with",
+            "exists",
+            "not_exists",
+            "is_empty",
+            "is_not_empty",
+            "regex_match",
+            "in_list",
+            "not_in_list"
+          ],
+          "title": "Operator",
+          "description": "Comparison operator",
+          "default": "equals"
+        },
+        "right_operand": {
+          "type": "string",
+          "title": "Right Operand",
+          "description": "Right side of comparison (field path, template, or literal value)",
+          "examples": [
+            "admin@example.com",
+            "{{config.threshold}}",
+            "0",
+            "true"
+          ]
+        },
+        "case_sensitive": {
+          "type": "boolean",
+          "title": "Case Sensitive",
+          "description": "Whether string comparisons should be case sensitive",
+          "default": true
+        }
+      },
+      "required": [
+        "left_operand",
+        "operator"
+      ],
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-27T15:46:06.241560",
+    "updated_at": "2025-12-27T15:46:06.241560"
+  },
+  "ai_validation": {
+    "node_type": "ai_validation",
+    "display_name": "AI Output Validator",
+    "description": "Validate AI-generated content for safety and quality",
+    "category": "ai_safety",
+    "python_class": "workflows.nodes.ai_safety_nodes.AIValidationNode",
+    "module_path": "workflows.nodes.ai_safety_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "content_field": {
+          "type": "string",
+          "title": "Content Field",
+          "description": "Field containing content to validate",
+          "default": "response"
+        },
+        "validation_strategies": {
+          "type": "array",
+          "title": "Validation Strategies",
+          "description": "List of validation strategies to apply",
+          "items": {
+            "type": "string",
+            "enum": [
+              "content_safety",
+              "factual_accuracy",
+              "format_compliance",
+              "business_rules",
+              "custom_rules"
+            ]
+          },
+          "default": [
+            "content_safety"
+          ]
+        },
+        "safety_level": {
+          "type": "string",
+          "enum": [
+            "strict",
+            "moderate",
+            "permissive"
+          ],
+          "title": "Safety Level",
+          "description": "Safety level for validation",
+          "default": "moderate"
+        },
+        "custom_rules": {
+          "type": "array",
+          "title": "Custom Rules",
+          "description": "Custom validation rules",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "format",
+                  "business",
+                  "custom"
+                ]
+              },
+              "rule_type": {
+                "type": "string"
+              },
+              "value": {},
+              "pattern": {
+                "type": "string"
+              },
+              "penalty": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          }
+        },
+        "fail_on_violation": {
+          "type": "boolean",
+          "title": "Fail on Violation",
+          "description": "Whether to fail execution on validation violations",
+          "default": true
+        }
+      },
+      "required": [
+        "content_field"
+      ],
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-27T15:46:06.244076",
+    "updated_at": "2025-12-27T15:46:06.244076"
+  },
+  "ai_agent": {
+    "node_type": "ai_agent",
+    "display_name": "AI Agent",
+    "description": "Autonomous AI agent with reasoning, planning, and tool usage capabilities",
+    "category": "ai",
+    "python_class": "workflows.nodes.ai_agent_node.AIAgentNode",
+    "module_path": "workflows.nodes.ai_agent_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "goal": {
+          "type": "string",
+          "title": "Agent Goal",
+          "description": "Primary objective for the AI agent",
+          "minLength": 10,
+          "maxLength": 500,
+          "default": "Help the user with their request"
+        },
+        "reasoning_mode": {
+          "type": "string",
+          "enum": [
+            "reactive",
+            "planning",
+            "conversational",
+            "analytical"
+          ],
+          "title": "Reasoning Mode",
+          "description": "How the agent should approach the task",
+          "default": "reactive"
+        },
+        "available_tools": {
+          "type": "array",
+          "title": "Available Tools",
+          "description": "List of tools (nodes) the agent can use",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "maxItems": 20
+        },
+        "memory_enabled": {
+          "type": "boolean",
+          "title": "Enable Memory",
+          "description": "Whether the agent should use memory",
+          "default": true
+        },
+        "safety_level": {
+          "type": "string",
+          "enum": [
+            "strict",
+            "moderate",
+            "permissive"
+          ],
+          "title": "Safety Level",
+          "description": "Safety restrictions for the agent",
+          "default": "moderate"
+        },
+        "max_steps": {
+          "type": "integer",
+          "title": "Maximum Steps",
+          "description": "Maximum reasoning steps allowed",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 10
+        },
+        "model_config": {
+          "type": "object",
+          "title": "AI Model Configuration",
+          "description": "Configuration for the AI model",
+          "properties": {
+            "model": {
+              "type": "string",
+              "default": "gpt-4"
+            },
+            "temperature": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 2.0,
+              "default": 0.7
+            },
+            "max_tokens": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 4000,
+              "default": 2000
+            }
+          }
+        }
+      },
+      "required": [
+        "goal"
+      ],
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-27T15:46:06.247077",
+    "updated_at": "2025-12-27T15:46:06.247077"
+  },
+  "ai_guardrail": {
+    "node_type": "ai_guardrail",
+    "display_name": "AI Guardrails",
+    "description": "Apply safety guardrails and controls to AI workflows",
+    "category": "ai_safety",
+    "python_class": "workflows.nodes.ai_safety_nodes.AIGuardrailNode",
+    "module_path": "workflows.nodes.ai_safety_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "guardrail_types": {
+          "type": "array",
+          "title": "Guardrail Types",
+          "description": "Types of guardrails to apply",
+          "items": {
+            "type": "string",
+            "enum": [
+              "content_filter",
+              "rate_limiter",
+              "cost_monitor",
+              "output_modifier"
+            ]
+          },
+          "default": [
+            "content_filter"
+          ]
+        },
+        "content_filters": {
+          "type": "object",
+          "title": "Content Filters",
+          "description": "Content filtering configuration",
+          "properties": {
+            "content_fields": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "forbidden_words": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "replacement": {
+              "type": "string"
+            },
+            "remove_urls": {
+              "type": "boolean"
+            },
+            "remove_emails": {
+              "type": "boolean"
+            }
+          }
+        },
+        "rate_limits": {
+          "type": "object",
+          "title": "Rate Limits",
+          "description": "Rate limiting configuration",
+          "properties": {
+            "requests_per_minute": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "requests_per_hour": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "cost_limits": {
+          "type": "object",
+          "title": "Cost Limits",
+          "description": "Cost monitoring configuration",
+          "properties": {
+            "max_cost_per_request": {
+              "type": "number",
+              "minimum": 0
+            },
+            "daily_cost_limit": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "modification_rules": {
+          "type": "object",
+          "title": "Modification Rules",
+          "description": "Output modification configuration",
+          "properties": {
+            "target_fields": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "add_disclaimer": {
+              "type": "boolean"
+            },
+            "disclaimer_text": {
+              "type": "string"
+            },
+            "max_length": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "safety_keywords": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "safety_warning": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-27T15:46:06.250140",
+    "updated_at": "2025-12-27T15:46:06.250140"
+  },
+  "switch": {
+    "node_type": "switch",
+    "display_name": "Switch",
+    "description": "Switch workflow execution between multiple paths",
+    "category": "utilities",
+    "python_class": "workflows.nodes.router_node.SwitchNode",
+    "module_path": "workflows.nodes.router_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "title": "Routing Rules",
+          "description": "List of rules to evaluate for routing decisions",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Rule Name",
+                "description": "Unique name for this routing path",
+                "examples": [
+                  "billing",
+                  "support",
+                  "sales"
+                ]
+              },
+              "left_operand": {
+                "type": "string",
+                "title": "Left Operand",
+                "description": "Left side of comparison (field path, template, or literal)",
+                "examples": [
+                  "input.text",
+                  "{{user.department}}",
+                  "priority"
+                ]
+              },
+              "operator": {
+                "type": "string",
+                "enum": [
+                  "equals",
+                  "not_equals",
+                  "greater_than",
+                  "greater_equal",
+                  "less_than",
+                  "less_equal",
+                  "contains",
+                  "not_contains",
+                  "starts_with",
+                  "ends_with",
+                  "exists",
+                  "not_exists",
+                  "is_empty",
+                  "is_not_empty",
+                  "regex_match",
+                  "in_list",
+                  "not_in_list"
+                ],
+                "title": "Operator",
+                "description": "Comparison operator",
+                "default": "contains"
+              },
+              "right_operand": {
+                "type": "string",
+                "title": "Right Operand",
+                "description": "Right side of comparison (field path, template, or literal)",
+                "examples": [
+                  "refund",
+                  "billing",
+                  "urgent"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "left_operand",
+              "operator"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "default_path": {
+          "type": "string",
+          "title": "Default Path",
+          "description": "Path to use when no rules match",
+          "default": "default",
+          "examples": [
+            "default",
+            "general",
+            "fallback"
+          ]
+        },
+        "case_sensitive": {
+          "type": "boolean",
+          "title": "Case Sensitive",
+          "description": "Whether string comparisons should be case sensitive",
+          "default": true
+        },
+        "evaluation_strategy": {
+          "type": "string",
+          "enum": [
+            "first_match",
+            "all_matches"
+          ],
+          "title": "Evaluation Strategy",
+          "description": "How to handle multiple matching rules",
+          "default": "first_match"
+        }
+      },
+      "required": [
+        "rules"
+      ],
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-27T15:46:06.253157",
+    "updated_at": "2025-12-27T15:46:06.253157"
+  },
+  "router": {
+    "node_type": "router",
+    "display_name": "Router / Switch",
+    "description": "Route workflow execution to multiple paths based on rules",
+    "category": "utilities",
+    "python_class": "workflows.nodes.router_node.RouterNode",
+    "module_path": "workflows.nodes.router_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "title": "Routing Rules",
+          "description": "List of rules to evaluate for routing decisions",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Rule Name",
+                "description": "Unique name for this routing path",
+                "examples": [
+                  "billing",
+                  "support",
+                  "sales"
+                ]
+              },
+              "left_operand": {
+                "type": "string",
+                "title": "Left Operand",
+                "description": "Left side of comparison (field path, template, or literal)",
+                "examples": [
+                  "input.text",
+                  "{{user.department}}",
+                  "priority"
+                ]
+              },
+              "operator": {
+                "type": "string",
+                "enum": [
+                  "equals",
+                  "not_equals",
+                  "greater_than",
+                  "greater_equal",
+                  "less_than",
+                  "less_equal",
+                  "contains",
+                  "not_contains",
+                  "starts_with",
+                  "ends_with",
+                  "exists",
+                  "not_exists",
+                  "is_empty",
+                  "is_not_empty",
+                  "regex_match",
+                  "in_list",
+                  "not_in_list"
+                ],
+                "title": "Operator",
+                "description": "Comparison operator",
+                "default": "contains"
+              },
+              "right_operand": {
+                "type": "string",
+                "title": "Right Operand",
+                "description": "Right side of comparison (field path, template, or literal)",
+                "examples": [
+                  "refund",
+                  "billing",
+                  "urgent"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "left_operand",
+              "operator"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "default_path": {
+          "type": "string",
+          "title": "Default Path",
+          "description": "Path to use when no rules match",
+          "default": "default",
+          "examples": [
+            "default",
+            "general",
+            "fallback"
+          ]
+        },
+        "case_sensitive": {
+          "type": "boolean",
+          "title": "Case Sensitive",
+          "description": "Whether string comparisons should be case sensitive",
+          "default": true
+        },
+        "evaluation_strategy": {
+          "type": "string",
+          "enum": [
+            "first_match",
+            "all_matches"
+          ],
+          "title": "Evaluation Strategy",
+          "description": "How to handle multiple matching rules",
+          "default": "first_match"
+        }
+      },
+      "required": [
+        "rules"
+      ],
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2025-12-27T15:46:06.255342",
+    "updated_at": "2025-12-27T15:46:06.255342"
+  },
+  "chat_trigger": {
+    "node_type": "chat_trigger",
+    "display_name": "Chat Trigger",
+    "description": "Triggers workflow when user sends a chat message",
+    "category": "triggers",
+    "python_class": "workflows.nodes.chat_nodes.ChatTriggerNode",
+    "module_path": "workflows.nodes.chat_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "intent_extraction": {
+          "type": "boolean",
+          "default": true,
+          "title": "Extract Entities",
+          "description": "Automatically extract entities like names, emails, phone numbers from messages"
+        },
+        "context_window": {
+          "type": "integer",
+          "default": 5,
+          "minimum": 0,
+          "maximum": 20,
+          "title": "Context Window",
+          "description": "Number of previous messages to include as context"
+        },
+        "required_entities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Entities",
+          "description": "List of entities that must be extracted before workflow can proceed"
+        },
+        "response_format": {
+          "type": "string",
+          "enum": [
+            "text",
+            "structured"
+          ],
+          "default": "text",
+          "title": "Response Format",
+          "description": "Expected format of workflow response"
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-01T17:05:28.422110",
+    "updated_at": "2026-01-01T17:05:28.422110"
+  },
+  "chat_response": {
+    "node_type": "chat_response",
+    "display_name": "Chat Response",
+    "description": "Formats workflow output as chat message response",
+    "category": "chat",
+    "python_class": "workflows.nodes.chat_nodes.ChatResponseNode",
+    "module_path": "workflows.nodes.chat_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "message_template": {
+          "type": "string",
+          "title": "Message Template",
+          "description": "Template for response message. Use {field_name} for variable substitution.",
+          "examples": [
+            "Hello {name}!",
+            "Your order {order_id} has been {status}",
+            "Found {count} results for {query}"
+          ]
+        },
+        "response_type": {
+          "type": "string",
+          "enum": [
+            "text",
+            "card",
+            "list"
+          ],
+          "default": "text",
+          "title": "Response Type",
+          "description": "Type of response format"
+        },
+        "include_data": {
+          "type": "boolean",
+          "default": false,
+          "title": "Include Data",
+          "description": "Include structured data in response for debugging"
+        },
+        "error_message": {
+          "type": "string",
+          "default": "Sorry, I encountered an error processing your request.",
+          "title": "Error Message",
+          "description": "Message to show when template formatting fails"
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-01T17:05:28.427104",
+    "updated_at": "2026-01-01T17:05:28.427104"
+  },
+  "schedule_trigger": {
+    "node_type": "schedule_trigger",
+    "display_name": "Schedule Trigger",
+    "description": "Triggers workflow on a schedule using cron expressions",
+    "category": "triggers",
+    "python_class": "workflows.nodes.trigger_nodes.ScheduleTriggerNode",
+    "module_path": "workflows.nodes.trigger_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "cron_expression": {
+          "type": "string",
+          "title": "Cron Expression",
+          "description": "Cron expression for schedule (e.g., '0 9 * * 1-5' for weekdays at 9 AM)",
+          "default": "0 0 * * *"
+        },
+        "timezone": {
+          "type": "string",
+          "title": "Timezone",
+          "description": "Timezone for schedule execution",
+          "default": "UTC",
+          "enum": [
+            "UTC",
+            "America/New_York",
+            "America/Los_Angeles",
+            "Europe/London",
+            "Europe/Paris",
+            "Asia/Tokyo"
+          ]
+        },
+        "static_data": {
+          "type": "object",
+          "title": "Static Data",
+          "description": "Static data to include with each scheduled execution",
+          "default": {}
+        },
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "Whether the schedule is active",
+          "default": true
+        }
+      },
+      "required": [
+        "cron_expression"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-01T17:05:28.432869",
+    "updated_at": "2026-01-01T17:05:28.432869"
+  },
+  "http_request": {
+    "node_type": "http_request",
+    "display_name": "HTTP Request",
+    "description": "Make HTTP requests to external APIs",
+    "category": "actions",
+    "python_class": "workflows.nodes.action_nodes.HttpRequestNode",
+    "module_path": "workflows.nodes.action_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "title": "URL",
+          "description": "Target URL for HTTP request (supports templates like {{variable}})",
+          "format": "uri"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "HEAD",
+            "OPTIONS"
+          ],
+          "default": "GET",
+          "title": "HTTP Method"
+        },
+        "headers": {
+          "type": "object",
+          "title": "Headers",
+          "description": "HTTP headers to send (supports templates)",
+          "default": {
+            "Content-Type": "application/json"
+          }
+        },
+        "body": {
+          "type": "object",
+          "title": "Request Body",
+          "description": "JSON body for POST/PUT requests (supports templates)"
+        },
+        "timeout": {
+          "type": "integer",
+          "default": 30,
+          "minimum": 1,
+          "maximum": 300,
+          "title": "Timeout (seconds)"
+        },
+        "retry_count": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 0,
+          "maximum": 10,
+          "title": "Retry Count"
+        },
+        "retry_backoff": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0.1,
+          "maximum": 10,
+          "title": "Retry Backoff Factor"
+        },
+        "follow_redirects": {
+          "type": "boolean",
+          "default": true,
+          "title": "Follow Redirects"
+        },
+        "verify_ssl": {
+          "type": "boolean",
+          "default": true,
+          "title": "Verify SSL Certificate"
+        },
+        "fail_on_error": {
+          "type": "boolean",
+          "default": true,
+          "title": "Fail on HTTP Error Status"
+        }
+      },
+      "required": [
+        "url"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-01T17:05:28.439410",
+    "updated_at": "2026-01-01T17:05:28.439410"
+  },
+  "email_sender": {
+    "node_type": "email_sender",
+    "display_name": "Send Email",
+    "description": "Send emails via SMTP or email service APIs",
+    "category": "actions",
+    "python_class": "workflows.nodes.action_nodes.EmailSenderNode",
+    "module_path": "workflows.nodes.action_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "to": {
+          "type": "string",
+          "title": "To Email",
+          "description": "Recipient email address (supports templates)",
+          "format": "email"
+        },
+        "subject": {
+          "type": "string",
+          "title": "Subject",
+          "description": "Email subject (supports templates)"
+        },
+        "body": {
+          "type": "string",
+          "title": "Email Body",
+          "description": "Email content (supports templates)"
+        },
+        "from": {
+          "type": "string",
+          "title": "From Email",
+          "description": "Sender email address",
+          "format": "email"
+        },
+        "is_html": {
+          "type": "boolean",
+          "default": false,
+          "title": "HTML Email",
+          "description": "Whether email body is HTML"
+        },
+        "service_type": {
+          "type": "string",
+          "enum": [
+            "smtp",
+            "sendgrid",
+            "mailgun"
+          ],
+          "default": "smtp",
+          "title": "Email Service"
+        },
+        "smtp_config": {
+          "type": "object",
+          "title": "SMTP Configuration",
+          "properties": {
+            "host": {
+              "type": "string",
+              "title": "SMTP Host"
+            },
+            "port": {
+              "type": "integer",
+              "title": "SMTP Port",
+              "default": 587
+            },
+            "username": {
+              "type": "string",
+              "title": "Username"
+            },
+            "password": {
+              "type": "string",
+              "title": "Password",
+              "format": "password"
+            },
+            "use_tls": {
+              "type": "boolean",
+              "title": "Use TLS",
+              "default": true
+            }
+          }
+        }
+      },
+      "required": [
+        "to",
+        "subject",
+        "from"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-01T17:05:28.442944",
+    "updated_at": "2026-01-01T17:05:28.442944"
+  },
+  "parallel_merge": {
+    "node_type": "parallel_merge",
+    "display_name": "Parallel Merge",
+    "description": "Merge results from multiple parallel branches",
+    "category": "utilities",
+    "python_class": "workflows.nodes.parallel_nodes.ParallelMergeNode",
+    "module_path": "workflows.nodes.parallel_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "merge_strategy": {
+          "type": "string",
+          "enum": [
+            "all",
+            "first_success",
+            "majority",
+            "any"
+          ],
+          "title": "Merge Strategy",
+          "description": "How to wait for branch completion",
+          "default": "all"
+        },
+        "merge_mode": {
+          "type": "string",
+          "enum": [
+            "array",
+            "object",
+            "flatten",
+            "first"
+          ],
+          "title": "Merge Mode",
+          "description": "How to combine branch results",
+          "default": "array"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "title": "Timeout (milliseconds)",
+          "description": "Maximum time to wait for branches",
+          "minimum": 1000,
+          "maximum": 600000,
+          "default": 60000
+        },
+        "failure_strategy": {
+          "type": "string",
+          "enum": [
+            "fail_on_any",
+            "partial_success",
+            "ignore_failures"
+          ],
+          "title": "Failure Strategy",
+          "description": "How to handle branch failures",
+          "default": "partial_success"
+        },
+        "required_branches": {
+          "type": "array",
+          "title": "Required Branches",
+          "description": "Specific branches that must succeed",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-04T04:55:52.252642",
+    "updated_at": "2026-01-04T04:55:52.252653"
+  },
+  "merge": {
+    "node_type": "merge",
+    "display_name": "Merge",
+    "description": "Merge results from multiple parallel branches",
+    "category": "utilities",
+    "python_class": "workflows.nodes.parallel_nodes.MergeNode",
+    "module_path": "workflows.nodes.parallel_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "merge_strategy": {
+          "type": "string",
+          "enum": [
+            "all",
+            "first_success",
+            "majority",
+            "any"
+          ],
+          "title": "Merge Strategy",
+          "description": "How to wait for branch completion",
+          "default": "all"
+        },
+        "merge_mode": {
+          "type": "string",
+          "enum": [
+            "array",
+            "object",
+            "flatten",
+            "first"
+          ],
+          "title": "Merge Mode",
+          "description": "How to combine branch results",
+          "default": "array"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "title": "Timeout (milliseconds)",
+          "description": "Maximum time to wait for branches",
+          "minimum": 1000,
+          "maximum": 600000,
+          "default": 60000
+        },
+        "failure_strategy": {
+          "type": "string",
+          "enum": [
+            "fail_on_any",
+            "partial_success",
+            "ignore_failures"
+          ],
+          "title": "Failure Strategy",
+          "description": "How to handle branch failures",
+          "default": "partial_success"
+        },
+        "required_branches": {
+          "type": "array",
+          "title": "Required Branches",
+          "description": "Specific branches that must succeed",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-04T04:55:52.257087",
+    "updated_at": "2026-01-04T04:55:52.257097"
+  },
+  "parallel_fork": {
+    "node_type": "parallel_fork",
+    "display_name": "Parallel Fork",
+    "description": "Split execution into multiple parallel branches",
+    "category": "utilities",
+    "python_class": "workflows.nodes.parallel_nodes.ParallelForkNode",
+    "module_path": "workflows.nodes.parallel_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "branch_count": {
+          "type": "integer",
+          "title": "Branch Count",
+          "description": "Number of parallel branches to create",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 2
+        },
+        "branch_names": {
+          "type": "array",
+          "title": "Branch Names",
+          "description": "Optional names for branches (for logging and debugging)",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "maxItems": 10
+        },
+        "execution_mode": {
+          "type": "string",
+          "enum": [
+            "sync",
+            "async"
+          ],
+          "title": "Execution Mode",
+          "description": "How to execute branches",
+          "default": "async"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "title": "Timeout (milliseconds)",
+          "description": "Maximum time to wait for all branches",
+          "minimum": 1000,
+          "maximum": 300000,
+          "default": 30000
+        },
+        "failure_strategy": {
+          "type": "string",
+          "enum": [
+            "fail_fast",
+            "continue_on_error",
+            "wait_for_all"
+          ],
+          "title": "Failure Strategy",
+          "description": "How to handle branch failures",
+          "default": "fail_fast"
+        }
+      },
+      "required": [
+        "branch_count"
+      ],
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-04T04:55:52.276796",
+    "updated_at": "2026-01-04T04:55:52.276803"
+  },
+  "fork": {
+    "node_type": "fork",
+    "display_name": "Fork",
+    "description": "Split execution into multiple parallel branches",
+    "category": "utilities",
+    "python_class": "workflows.nodes.parallel_nodes.ForkNode",
+    "module_path": "workflows.nodes.parallel_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "branch_count": {
+          "type": "integer",
+          "title": "Branch Count",
+          "description": "Number of parallel branches to create",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 2
+        },
+        "branch_names": {
+          "type": "array",
+          "title": "Branch Names",
+          "description": "Optional names for branches (for logging and debugging)",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "maxItems": 10
+        },
+        "execution_mode": {
+          "type": "string",
+          "enum": [
+            "sync",
+            "async"
+          ],
+          "title": "Execution Mode",
+          "description": "How to execute branches",
+          "default": "async"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "title": "Timeout (milliseconds)",
+          "description": "Maximum time to wait for all branches",
+          "minimum": 1000,
+          "maximum": 300000,
+          "default": 30000
+        },
+        "failure_strategy": {
+          "type": "string",
+          "enum": [
+            "fail_fast",
+            "continue_on_error",
+            "wait_for_all"
+          ],
+          "title": "Failure Strategy",
+          "description": "How to handle branch failures",
+          "default": "fail_fast"
+        }
+      },
+      "required": [
+        "branch_count"
+      ],
+      "additionalProperties": false
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-04T04:55:52.315364",
+    "updated_at": "2026-01-04T04:55:52.315378"
+  },
+  "data_transform": {
+    "node_type": "data_transform",
+    "display_name": "Data Transform",
+    "description": "Transform and manipulate data using various operations",
+    "category": "utilities",
+    "python_class": "workflows.nodes.utility_nodes.DataTransformNode",
+    "module_path": "workflows.nodes.utility_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "transformations": {
+          "type": "array",
+          "title": "Transformations",
+          "description": "List of transformations to apply in order",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "set_field",
+                  "copy_field",
+                  "remove_field",
+                  "rename_field",
+                  "format_string",
+                  "json_parse",
+                  "json_stringify"
+                ],
+                "title": "Transformation Type"
+              },
+              "field": {
+                "type": "string",
+                "title": "Field Path",
+                "description": "Dot-separated path to field"
+              },
+              "source": {
+                "type": "string",
+                "title": "Source Field",
+                "description": "Source field path (for copy operations)"
+              },
+              "target": {
+                "type": "string",
+                "title": "Target Field",
+                "description": "Target field path (for copy operations)"
+              },
+              "old_field": {
+                "type": "string",
+                "title": "Old Field Path",
+                "description": "Current field path (for rename operations)"
+              },
+              "new_field": {
+                "type": "string",
+                "title": "New Field Path",
+                "description": "New field path (for rename operations)"
+              },
+              "value": {
+                "title": "Value",
+                "description": "Value to set (supports templates)"
+              },
+              "format": {
+                "type": "string",
+                "title": "Format Template",
+                "description": "Format string with {value} placeholder"
+              }
+            }
+          }
+        },
+        "fail_on_error": {
+          "type": "boolean",
+          "default": true,
+          "title": "Fail on Error",
+          "description": "Whether to fail if any transformation errors"
+        }
+      },
+      "required": [
+        "transformations"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-09T18:24:36.726970",
+    "updated_at": "2026-01-09T18:24:36.726983"
+  },
+  "logger": {
+    "node_type": "logger",
+    "display_name": "Logger",
+    "description": "Log data for debugging and monitoring",
+    "category": "utilities",
+    "python_class": "workflows.nodes.utility_nodes.LoggerNode",
+    "module_path": "workflows.nodes.utility_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "title": "Log Message",
+          "description": "Message to log (supports templates)",
+          "default": "Workflow checkpoint"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "debug",
+            "info",
+            "warning",
+            "error"
+          ],
+          "default": "info",
+          "title": "Log Level"
+        },
+        "include_data": {
+          "type": "boolean",
+          "default": true,
+          "title": "Include Data",
+          "description": "Whether to include workflow data in log"
+        },
+        "data_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Data Fields",
+          "description": "Specific fields to log (empty = log all)"
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-09T18:24:36.757416",
+    "updated_at": "2026-01-09T18:24:36.757442"
+  },
+  "email-send": {
+    "node_type": "email-send",
+    "display_name": "Send Email",
+    "description": "Send emails with automatic Gmail OAuth / SMTP routing",
+    "category": "actions",
+    "python_class": "workflows.nodes.action_nodes.EmailSenderNode",
+    "module_path": "workflows.nodes.action_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "Credential",
+          "description": "Select Email credential",
+          "widget": "credential_select",
+          "credential_type": "email"
+        },
+        "to": {
+          "type": "string",
+          "title": "To Email",
+          "description": "Recipient email addresses (comma-separated, supports templates)",
+          "format": "email"
+        },
+        "cc": {
+          "type": "string",
+          "title": "CC Email",
+          "description": "CC email addresses (comma-separated, supports templates)",
+          "format": "email"
+        },
+        "bcc": {
+          "type": "string",
+          "title": "BCC Email",
+          "description": "BCC email addresses (comma-separated, supports templates)",
+          "format": "email"
+        },
+        "subject": {
+          "type": "string",
+          "title": "Subject",
+          "description": "Email subject (supports templates)"
+        },
+        "body": {
+          "type": "string",
+          "title": "Email Body",
+          "description": "Email content (supports templates)"
+        },
+        "from": {
+          "type": "string",
+          "title": "From Email",
+          "description": "Sender email address (Gmail uses OAuth, others use SMTP)",
+          "format": "email"
+        },
+        "is_html": {
+          "type": "boolean",
+          "default": false,
+          "title": "HTML Email",
+          "description": "Whether email body is HTML"
+        },
+        "smtp_config": {
+          "type": "object",
+          "title": "SMTP Configuration (for non-Gmail addresses)",
+          "properties": {
+            "host": {
+              "type": "string",
+              "title": "SMTP Host"
+            },
+            "port": {
+              "type": "integer",
+              "title": "SMTP Port",
+              "default": 587
+            },
+            "username": {
+              "type": "string",
+              "title": "Username"
+            },
+            "password": {
+              "type": "string",
+              "title": "Password",
+              "format": "password"
+            },
+            "use_tls": {
+              "type": "boolean",
+              "title": "Use TLS",
+              "default": true
+            },
+            "use_ssl": {
+              "type": "boolean",
+              "title": "Use SSL",
+              "default": false
+            }
+          }
+        }
+      },
+      "required": [
+        "to",
+        "subject",
+        "from"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-09T20:49:09.242921",
+    "updated_at": "2026-01-09T20:49:09.242943"
+  },
+  "http-request": {
+    "node_type": "http-request",
+    "display_name": "HTTP Request",
+    "description": "Make HTTP requests to external APIs",
+    "category": "actions",
+    "python_class": "workflows.nodes.action_nodes.HttpRequestNode",
+    "module_path": "workflows.nodes.action_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH"
+          ],
+          "default": "GET"
+        },
+        "url": {
+          "type": "string",
+          "title": "URL"
+        },
+        "headers": {
+          "type": "object",
+          "title": "Headers (JSON)"
+        },
+        "body_type": {
+          "type": "string",
+          "enum": [
+            "json",
+            "raw"
+          ],
+          "default": "json"
+        },
+        "body": {
+          "type": "object",
+          "title": "Body (JSON)"
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-15T06:00:10.906792",
+    "updated_at": "2026-01-15T06:00:10.906804"
+  },
+  "condition": {
+    "node_type": "condition",
+    "display_name": "Condition",
+    "description": "Filter execution based on conditions",
+    "category": "logic",
+    "python_class": "workflows.nodes.logic_nodes.ConditionNode",
+    "module_path": "workflows.nodes.logic_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "left": {
+          "type": "string",
+          "title": "Left Value"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "==",
+            "!=",
+            ">",
+            "<",
+            ">=",
+            "<=",
+            "contains",
+            "not_contains",
+            "matches",
+            "is_empty",
+            "is_not_empty"
+          ],
+          "default": "=="
+        },
+        "right": {
+          "type": "string",
+          "title": "Right Value"
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-17T11:34:34.886810",
+    "updated_at": "2026-01-17T11:34:34.886822"
+  },
+  "tool_websearch": {
+    "node_type": "tool_websearch",
+    "display_name": "WebSearchTool",
+    "description": "",
+    "category": "tools",
+    "python_class": "workflows.nodes.model_nodes.WebSearchToolNode",
+    "module_path": "workflows.nodes.model_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-22T04:11:33.862441",
+    "updated_at": "2026-01-22T04:11:33.862454"
+  },
+  "model_openai": {
+    "node_type": "model_openai",
+    "display_name": "OpenAIChatModel",
+    "description": "",
+    "category": "ai",
+    "python_class": "workflows.nodes.model_nodes.OpenAIChatModelNode",
+    "module_path": "workflows.nodes.model_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-22T04:11:33.884502",
+    "updated_at": "2026-01-22T04:11:33.884529"
+  },
+  "google_calendar_trigger": {
+    "node_type": "google_calendar_trigger",
+    "display_name": "Google Calendar Trigger",
+    "description": "Triggers workflow when events are created or updated",
+    "category": "triggers",
+    "python_class": "workflows.nodes.google_calendar_trigger.GoogleCalendarTriggerNode",
+    "module_path": "workflows.nodes.google_calendar_trigger",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "Google Credential",
+          "widget": "credential_select",
+          "credential_type": "google_calendar"
+        },
+        "calendar_id": {
+          "type": "string",
+          "title": "Calendar ID",
+          "default": "primary"
+        },
+        "trigger_on": {
+          "type": "string",
+          "title": "Trigger On",
+          "enum": [
+            "event_created",
+            "event_starting"
+          ],
+          "default": "event_created",
+          "description": "Condition to trigger workflow"
+        },
+        "poll_interval": {
+          "type": "integer",
+          "title": "Poll Interval (Minutes)",
+          "default": 1,
+          "minimum": 1,
+          "description": "How often to check for new events"
+        }
+      },
+      "required": [
+        "credential_id",
+        "poll_interval"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-25T10:00:18.255601",
+    "updated_at": "2026-01-25T10:00:18.255611"
+  },
+  "google_calendar": {
+    "node_type": "google_calendar",
+    "display_name": "Google Calendar",
+    "description": "Interact with Google Calendar (Create, Update, Delete, List Events)",
+    "category": "actions",
+    "python_class": "workflows.nodes.google_calendar_node.GoogleCalendarNode",
+    "module_path": "workflows.nodes.google_calendar_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "Google Credential",
+          "widget": "credential_select",
+          "credential_type": "google_calendar"
+        },
+        "operation": {
+          "type": "string",
+          "title": "Operation",
+          "enum": [
+            "create",
+            "update",
+            "delete",
+            "get"
+          ],
+          "default": "create"
+        },
+        "calendar_id": {
+          "type": "string",
+          "title": "Calendar ID",
+          "default": "primary",
+          "description": "ID of the calendar to interact with"
+        },
+        "summary": {
+          "type": "string",
+          "title": "Summary",
+          "description": "Event title"
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "widget": "textarea"
+        },
+        "start_time": {
+          "type": "string",
+          "title": "Start Time",
+          "description": "ISO format datetime (e.g. 2023-12-25T10:00:00)"
+        },
+        "end_time": {
+          "type": "string",
+          "title": "End Time",
+          "description": "ISO format datetime"
+        },
+        "attendees": {
+          "type": "string",
+          "title": "Attendees",
+          "description": "Comma-separated email addresses"
+        },
+        "event_id": {
+          "type": "string",
+          "title": "Event ID",
+          "description": "Required for Update/Delete operations"
+        }
+      },
+      "required": [
+        "credential_id",
+        "operation",
+        "calendar_id"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-25T10:00:18.274394",
+    "updated_at": "2026-01-25T10:00:18.274406"
+  },
+  "whatsapp_send": {
+    "node_type": "whatsapp_send",
+    "display_name": "WhatsApp Send",
+    "description": "Send a message via WhatsApp (Meta)",
+    "category": "communication",
+    "python_class": "workflows.nodes.whatsapp_nodes.WhatsAppSendNode",
+    "module_path": "workflows.nodes.whatsapp_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "WhatsApp Account",
+          "widget": "credential_select",
+          "widgetOptions": {
+            "credentialType": [
+              "meta_whatsapp"
+            ]
+          }
+        },
+        "phone_number": {
+          "type": "string",
+          "title": "To Phone Number",
+          "description": "E.164 format (e.g., +15551234567)"
+        },
+        "message_type": {
+          "type": "string",
+          "title": "Message Type",
+          "enum": [
+            "text",
+            "template"
+          ],
+          "default": "text"
+        },
+        "content": {
+          "type": "string",
+          "title": "Content / Body",
+          "widget": "textarea",
+          "description": "Text message body OR Template Variables JSON."
+        },
+        "template_name": {
+          "type": "string",
+          "title": "Template Name",
+          "description": "Required if type is 'template'. Exact name from Meta Business Manager."
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-26T11:40:51.146223",
+    "updated_at": "2026-01-26T11:40:51.146223"
+  },
+  "whatsapp_trigger": {
+    "node_type": "whatsapp_trigger",
+    "display_name": "WhatsApp Trigger",
+    "description": "Triggers when a WhatsApp message is received",
+    "category": "communication",
+    "python_class": "workflows.nodes.whatsapp_nodes.WhatsAppTriggerNode",
+    "module_path": "workflows.nodes.whatsapp_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "WhatsApp Account",
+          "description": "Select the WhatsApp account to listen to.",
+          "widget": "credential_select",
+          "widgetOptions": {
+            "credentialType": [
+              "meta_whatsapp"
+            ]
+          }
+        },
+        "chat_mode": {
+          "type": "boolean",
+          "title": "Chatbot Mode",
+          "default": false,
+          "description": "If enabled, this flow acts as a conversational bot."
+        }
+      },
+      "required": [
+        "credential_id"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-26T11:40:51.175180",
+    "updated_at": "2026-01-26T11:40:51.175180"
+  },
+  "telegram_send": {
+    "node_type": "telegram_send",
+    "display_name": "Telegram Send",
+    "description": "Send a message via Telegram Bot",
+    "category": "communication",
+    "python_class": "workflows.nodes.telegram_send.TelegramSendNode",
+    "module_path": "workflows.nodes.telegram_send",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "Telegram Bot Credential",
+          "widget": "credential",
+          "credential_type": "telegram_bot"
+        },
+        "chat_id": {
+          "type": "string",
+          "title": "Chat ID",
+          "description": "User or Group Chat ID (supports templates)"
+        },
+        "text": {
+          "type": "string",
+          "title": "Message Text",
+          "widget": "textarea",
+          "description": "Message content (supports templates)"
+        },
+        "parse_mode": {
+          "type": "string",
+          "title": "Parse Mode",
+          "enum": [
+            "Markdown",
+            "HTML",
+            "None"
+          ],
+          "default": "None"
+        }
+      },
+      "required": [
+        "credential_id",
+        "chat_id",
+        "text"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-26T12:29:06.055290",
+    "updated_at": "2026-01-26T12:29:06.055300"
+  },
+  "telegram_trigger": {
+    "node_type": "telegram_trigger",
+    "display_name": "Telegram Trigger",
+    "description": "Triggers workflow on incoming Telegram events",
+    "category": "communication",
+    "python_class": "workflows.nodes.telegram_trigger.TelegramTriggerNode",
+    "module_path": "workflows.nodes.telegram_trigger",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "Telegram Bot Credential",
+          "widget": "credential_select",
+          "widgetOptions": {
+            "credentialType": [
+              "telegram_bot"
+            ]
+          }
+        },
+        "chatbot_mode": {
+          "type": "boolean",
+          "title": "Chatbot Mode",
+          "description": "If enabled, AI responses will be sent automatically (requires AI Agent definition).",
+          "default": false
+        },
+        "events": {
+          "type": "array",
+          "title": "Trigger On",
+          "items": {
+            "type": "string",
+            "enum": [
+              "message",
+              "command",
+              "photo",
+              "document",
+              "audio",
+              "voice"
+            ]
+          },
+          "default": [
+            "message",
+            "command"
+          ],
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "credential_id"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-26T12:29:06.085604",
+    "updated_at": "2026-01-26T12:29:06.085615"
+  },
+  "code": {
+    "node_type": "code",
+    "display_name": "Python Code",
+    "description": "Execute custom Python code",
+    "category": "utilities",
+    "python_class": "workflows.nodes.action_nodes.CodeNode",
+    "module_path": "workflows.nodes.action_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "title": "Python Code",
+          "description": "Python code to execute. Return a dictionary. Available vars: input_data, context.",
+          "widget": "code_editor",
+          "language": "python",
+          "default": "return {'message': 'Hello World'}"
+        }
+      },
+      "required": [
+        "code"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-01-30T18:17:10.664188",
+    "updated_at": "2026-01-30T18:17:10.664197"
+  },
+  "loop": {
+    "node_type": "loop",
+    "display_name": "Loop (Iterator)",
+    "description": "Iterate over a list and run a sub-workflow for each item",
+    "category": "logic",
+    "python_class": "workflows.nodes.logic_nodes.LoopNode",
+    "module_path": "workflows.nodes.logic_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "string",
+          "title": "Items to Iterate",
+          "description": "List of items (supports templates e.g. {{ $json.data }} )"
+        },
+        "sub_workflow": {
+          "type": "string",
+          "title": "Sub Workflow",
+          "description": "Select the workflow to run for each item",
+          "widget": "workflow_select"
+        }
+      },
+      "required": [
+        "items",
+        "sub_workflow"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.496416",
+    "updated_at": "2026-02-02T09:17:39.496436"
+  },
+  "date_time": {
+    "node_type": "date_time",
+    "display_name": "Date & Time",
+    "description": "Format dates, calculate duration, or get current time",
+    "category": "utility",
+    "python_class": "workflows.nodes.logic_nodes.DateNode",
+    "module_path": "workflows.nodes.logic_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "type": "string",
+          "enum": [
+            "current",
+            "format",
+            "add"
+          ],
+          "default": "current"
+        },
+        "format": {
+          "type": "string",
+          "title": "Format (e.g. %Y-%m-%d)"
+        },
+        "timezone": {
+          "type": "string",
+          "default": "UTC"
+        },
+        "date": {
+          "type": "string",
+          "title": "Input Date"
+        },
+        "value": {
+          "type": "integer",
+          "title": "Value to Add"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "minutes",
+            "hours",
+            "days",
+            "weeks"
+          ]
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.511413",
+    "updated_at": "2026-02-02T09:17:39.511441"
+  },
+  "google_sheets": {
+    "node_type": "google_sheets",
+    "display_name": "Google Sheets",
+    "description": "Read, write, and update Google Sheets",
+    "category": "integrations",
+    "python_class": "workflows.nodes.google_sheets_node.GoogleSheetsNode",
+    "module_path": "workflows.nodes.google_sheets_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "Credential",
+          "widget": "credential_select",
+          "credential_type": "google_sheets"
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "append",
+            "get",
+            "update",
+            "clear",
+            "lookup"
+          ],
+          "default": "append",
+          "title": "Operation"
+        },
+        "spreadsheet_id": {
+          "type": "string",
+          "title": "Spreadsheet ID",
+          "description": "ID from the Google Sheets URL"
+        },
+        "range": {
+          "type": "string",
+          "title": "Range",
+          "description": "A1 notation (e.g., 'Sheet1!A1:B10'). Ignored for Lookup."
+        },
+        "values": {
+          "type": "string",
+          "title": "Values (JSON)",
+          "description": "Array of arrays for rows (e.g. [['A', 'B']] ). For Append/Update."
+        },
+        "sheet_name": {
+          "type": "string",
+          "title": "Sheet Name",
+          "default": "Sheet1",
+          "description": "Required for Lookup"
+        },
+        "lookup_column": {
+          "type": "string",
+          "title": "Lookup Column",
+          "default": "A",
+          "description": "Column letter to search in (e.g. A, B)"
+        },
+        "lookup_value": {
+          "type": "string",
+          "title": "Lookup Value",
+          "description": "Value to search for"
+        },
+        "fail_if_not_found": {
+          "type": "boolean",
+          "default": false,
+          "title": "Fail if not found"
+        }
+      },
+      "required": [
+        "spreadsheet_id",
+        "operation"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.543194",
+    "updated_at": "2026-02-02T09:17:39.543223"
+  },
+  "discord": {
+    "node_type": "discord",
+    "display_name": "Discord",
+    "description": "Send messages via Webhook or Bot",
+    "category": "social",
+    "python_class": "workflows.nodes.discord_node.DiscordNode",
+    "module_path": "workflows.nodes.discord_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "title": "Mode",
+          "enum": [
+            "webhook",
+            "bot"
+          ],
+          "default": "webhook"
+        },
+        "credential_id": {
+          "type": "string",
+          "title": "Bot Token",
+          "widget": "credential_select",
+          "credential_type": "discord_bot",
+          "description": "Required for Bot Mode"
+        },
+        "webhook_url": {
+          "type": "string",
+          "title": "Webhook URL",
+          "description": "Required for Webhook Mode"
+        },
+        "channel_id": {
+          "type": "string",
+          "title": "Channel ID",
+          "description": "Required for Bot Mode"
+        },
+        "message": {
+          "type": "string",
+          "title": "Message",
+          "widget": "textarea"
+        },
+        "username": {
+          "type": "string",
+          "title": "Username Override",
+          "description": "Webhook only"
+        }
+      },
+      "required": [
+        "mode",
+        "message"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.587000",
+    "updated_at": "2026-02-02T09:17:39.587028"
+  },
+  "google_drive": {
+    "node_type": "google_drive",
+    "display_name": "Google Drive",
+    "description": "Upload, List, and Manage files on Google Drive",
+    "category": "integrations",
+    "python_class": "workflows.nodes.google_drive_node.GoogleDriveNode",
+    "module_path": "workflows.nodes.google_drive_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "Credential",
+          "widget": "credential_select",
+          "credential_type": "google_drive"
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "upload",
+            "list",
+            "create_folder",
+            "delete"
+          ],
+          "default": "upload",
+          "title": "Operation"
+        },
+        "filename": {
+          "type": "string",
+          "title": "File Name",
+          "default": "file.txt",
+          "description": "Output filename (Upload only)"
+        },
+        "content": {
+          "type": "string",
+          "title": "Text Content",
+          "description": "Text content to upload. Leave empty if using Binary input from HTTP Node."
+        },
+        "mime_type": {
+          "type": "string",
+          "title": "MIME Type",
+          "default": "text/plain"
+        },
+        "parent_id": {
+          "type": "string",
+          "title": "Parent Folder ID",
+          "description": "ID of parent folder (Upload/Create Folder)"
+        },
+        "query": {
+          "type": "string",
+          "title": "Search Query",
+          "description": "Drive API query (e.g. \"name contains 'contract' and mimeType = 'application/vnd.google-apps.folder'\")"
+        },
+        "limit": {
+          "type": "integer",
+          "default": 10,
+          "title": "Limit"
+        },
+        "folder_name": {
+          "type": "string",
+          "title": "Folder Name",
+          "default": "New Folder"
+        },
+        "file_id": {
+          "type": "string",
+          "title": "File ID",
+          "description": "ID of file/folder to delete"
+        }
+      },
+      "required": [
+        "credential_id",
+        "operation"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.627851",
+    "updated_at": "2026-02-02T09:17:39.627879"
+  },
+  "markdown": {
+    "node_type": "markdown",
+    "display_name": "Markdown to HTML",
+    "description": "Convert Markdown text to HTML",
+    "category": "utility",
+    "python_class": "workflows.nodes.utility_nodes.MarkdownNode",
+    "module_path": "workflows.nodes.utility_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "title": "Markdown Content",
+          "widget": "textarea",
+          "rows": 5
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.662422",
+    "updated_at": "2026-02-02T09:17:39.662440"
+  },
+  "rss_read": {
+    "node_type": "rss_read",
+    "display_name": "RSS Reader",
+    "description": "Fetch entries from an RSS feed",
+    "category": "utility",
+    "python_class": "workflows.nodes.utility_nodes.RssNode",
+    "module_path": "workflows.nodes.utility_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "title": "Feed URL"
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.727548",
+    "updated_at": "2026-02-02T09:17:39.727567"
+  },
+  "memory": {
+    "node_type": "memory",
+    "display_name": "Memory (Redis)",
+    "description": "Store and retrieve data using Redis (Key-Value)",
+    "category": "data",
+    "python_class": "workflows.nodes.memory_node.MemoryNode",
+    "module_path": "workflows.nodes.memory_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "type": "string",
+          "title": "Operation",
+          "enum": [
+            "set",
+            "get",
+            "increment",
+            "delete"
+          ],
+          "default": "set"
+        },
+        "key": {
+          "type": "string",
+          "title": "Key",
+          "description": "Storage Key"
+        },
+        "value": {
+          "type": "string",
+          "title": "Value",
+          "description": "Value to store (for SET)",
+          "widget": "textarea"
+        },
+        "delta": {
+          "type": "integer",
+          "title": "Increment By",
+          "default": 1,
+          "description": "Amount to increment (for INCREMENT)"
+        },
+        "scope": {
+          "type": "string",
+          "title": "Scope",
+          "enum": [
+            "workflow",
+            "user",
+            "global"
+          ],
+          "default": "workflow",
+          "description": "Workflow: Shared by this workflow. User: Shared by user. Global: Shared by all."
+        },
+        "ttl": {
+          "type": "integer",
+          "title": "TTL (Seconds)",
+          "default": 86400,
+          "description": "Time to live in seconds (default 24h)"
+        }
+      },
+      "required": [
+        "operation",
+        "key"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.833900",
+    "updated_at": "2026-02-02T09:17:39.833918"
+  },
+  "youtube": {
+    "node_type": "youtube",
+    "display_name": "YouTube",
+    "description": "Interact with YouTube (Search, Get Video, Comment)",
+    "category": "social",
+    "python_class": "workflows.nodes.youtube_node.YouTubeNode",
+    "module_path": "workflows.nodes.youtube_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "Google Credential",
+          "widget": "credential_select",
+          "credential_type": "google_oauth"
+        },
+        "operation": {
+          "type": "string",
+          "title": "Operation",
+          "enum": [
+            "search",
+            "get_video",
+            "comment"
+          ],
+          "default": "search"
+        },
+        "query": {
+          "type": "string",
+          "title": "Search Query",
+          "description": "e.g. 'python tutorials'"
+        },
+        "max_results": {
+          "type": "number",
+          "title": "Max Results",
+          "default": 5
+        },
+        "video_id": {
+          "type": "string",
+          "title": "Video ID",
+          "description": "ID of the video"
+        },
+        "comment_text": {
+          "type": "string",
+          "title": "Comment",
+          "widget": "textarea"
+        }
+      },
+      "required": [
+        "credential_id",
+        "operation"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.928321",
+    "updated_at": "2026-02-02T09:17:39.928340"
+  },
+  "crypto": {
+    "node_type": "crypto",
+    "display_name": "Crypto / Hash",
+    "description": "Hashing (MD5, SHA) and Encoding (Base64)",
+    "category": "utility",
+    "python_class": "workflows.nodes.logic_nodes.CryptoNode",
+    "module_path": "workflows.nodes.logic_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "hash",
+            "hmac",
+            "base64_encode",
+            "base64_decode"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "title": "Input Value"
+        },
+        "algo": {
+          "type": "string",
+          "enum": [
+            "md5",
+            "sha256",
+            "sha512"
+          ],
+          "default": "sha256"
+        },
+        "secret": {
+          "type": "string",
+          "title": "Secret Key (for HMAC)"
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.954968",
+    "updated_at": "2026-02-02T09:17:39.954984"
+  },
+  "inspector": {
+    "node_type": "inspector",
+    "display_name": "Payload Inspector",
+    "description": "Debug helper to inspect data",
+    "category": "utility",
+    "python_class": "workflows.nodes.utility_nodes.PayloadInspectorNode",
+    "module_path": "workflows.nodes.utility_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {},
+      "description": "No configuration needed. Just connect to inspect data."
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:39.978238",
+    "updated_at": "2026-02-02T09:17:39.978253"
+  },
+  "fail": {
+    "node_type": "fail",
+    "display_name": "Stop / Fail",
+    "description": "Stop execution with an error message",
+    "category": "logic",
+    "python_class": "workflows.nodes.logic_nodes.FailNode",
+    "module_path": "workflows.nodes.logic_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "title": "Error Message",
+          "default": "Workflow stopped intentionally."
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T09:17:40.000185",
+    "updated_at": "2026-02-02T09:17:40.000223"
+  },
+  "manual-trigger": {
+    "node_type": "manual-trigger",
+    "display_name": "Manual Trigger",
+    "description": "Triggers workflow when manually executed (for testing)",
+    "category": "triggers",
+    "python_class": "workflows.nodes.trigger_nodes.ManualTriggerNode",
+    "module_path": "workflows.nodes.trigger_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "test_data": {
+          "type": "object",
+          "title": "Test Data",
+          "description": "Static test data to use when manually triggering workflow",
+          "default": {
+            "test": true,
+            "sample_data": "This is test data"
+          }
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "description": "Description of what this manual trigger is for",
+          "default": "Manual execution for testing"
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T18:33:42.494577",
+    "updated_at": "2026-02-02T18:33:42.494724"
+  },
+  "slack-message": {
+    "node_type": "slack-message",
+    "display_name": "Send Slack Message",
+    "description": "Send messages to Slack channels or direct messages",
+    "category": "actions",
+    "python_class": "workflows.nodes.action_nodes.SlackMessageNode",
+    "module_path": "workflows.nodes.action_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "string",
+          "title": "Channel",
+          "description": "Slack channel or user (e.g., #general, @username) - supports templates"
+        },
+        "message": {
+          "type": "string",
+          "title": "Message",
+          "description": "Message text to send (supports templates)"
+        },
+        "webhook_url": {
+          "type": "string",
+          "title": "Webhook URL",
+          "description": "Slack webhook URL (if using webhook method)",
+          "format": "uri"
+        },
+        "bot_token": {
+          "type": "string",
+          "title": "Bot Token",
+          "description": "Slack bot token (if using API method)",
+          "format": "password"
+        },
+        "username": {
+          "type": "string",
+          "title": "Bot Username",
+          "description": "Custom username for the bot (webhook only)"
+        },
+        "icon_emoji": {
+          "type": "string",
+          "title": "Icon Emoji",
+          "description": "Emoji to use as bot icon (e.g., :robot_face:)"
+        },
+        "icon_url": {
+          "type": "string",
+          "title": "Icon URL",
+          "description": "URL of image to use as bot icon",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "channel",
+        "message"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T18:33:42.512199",
+    "updated_at": "2026-02-02T18:33:42.512236"
+  },
+  "schedule-trigger": {
+    "node_type": "schedule-trigger",
+    "display_name": "Schedule Trigger",
+    "description": "Triggers workflow on a schedule using cron expressions",
+    "category": "triggers",
+    "python_class": "workflows.nodes.trigger_nodes.ScheduleTriggerNode",
+    "module_path": "workflows.nodes.trigger_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "cron_expression": {
+          "type": "string",
+          "title": "Cron Expression",
+          "description": "Cron expression for schedule (e.g., '0 9 * * 1-5' for weekdays at 9 AM)",
+          "default": "0 0 * * *"
+        },
+        "timezone": {
+          "type": "string",
+          "title": "Timezone",
+          "description": "Timezone for schedule execution",
+          "default": "UTC",
+          "enum": [
+            "UTC",
+            "America/New_York",
+            "America/Los_Angeles",
+            "Europe/London",
+            "Europe/Paris",
+            "Asia/Tokyo"
+          ]
+        },
+        "static_data": {
+          "type": "object",
+          "title": "Static Data",
+          "description": "Static data to include with each scheduled execution",
+          "default": {}
+        },
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "Whether the schedule is active",
+          "default": true
+        }
+      },
+      "required": [
+        "cron_expression"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T18:33:42.566334",
+    "updated_at": "2026-02-02T18:33:42.566348"
+  },
+  "webhook-trigger": {
+    "node_type": "webhook-trigger",
+    "display_name": "Webhook Trigger",
+    "description": "Triggers workflow when webhook endpoint is called",
+    "category": "triggers",
+    "python_class": "workflows.nodes.trigger_nodes.WebhookTriggerNode",
+    "module_path": "workflows.nodes.trigger_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "title": "Webhook Path",
+          "description": "URL path for webhook endpoint (e.g., /webhook/customer-signup)",
+          "pattern": "^/.*"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH"
+          ],
+          "default": "POST",
+          "title": "HTTP Method",
+          "description": "HTTP method that triggers the webhook"
+        },
+        "authentication": {
+          "type": "string",
+          "enum": [
+            "none",
+            "basic",
+            "bearer",
+            "hmac",
+            "query_param"
+          ],
+          "default": "none",
+          "title": "Authentication Method",
+          "description": "How to authenticate incoming webhook requests"
+        },
+        "auth_config": {
+          "type": "object",
+          "title": "Authentication Configuration",
+          "description": "Configuration for the selected authentication method",
+          "properties": {
+            "username": {
+              "type": "string",
+              "title": "Username"
+            },
+            "password": {
+              "type": "string",
+              "title": "Password",
+              "format": "password"
+            },
+            "token": {
+              "type": "string",
+              "title": "Bearer Token",
+              "format": "password"
+            },
+            "secret": {
+              "type": "string",
+              "title": "HMAC Secret",
+              "format": "password"
+            },
+            "param_name": {
+              "type": "string",
+              "title": "Query Parameter Name"
+            },
+            "param_value": {
+              "type": "string",
+              "title": "Expected Parameter Value"
+            }
+          }
+        },
+        "required_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Fields",
+          "description": "Fields that must be present in webhook payload"
+        },
+        "response_config": {
+          "type": "object",
+          "title": "Response Configuration",
+          "properties": {
+            "status_code": {
+              "type": "integer",
+              "default": 200,
+              "title": "Response Status Code"
+            },
+            "response_body": {
+              "type": "object",
+              "title": "Response Body",
+              "default": {
+                "status": "received"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "path"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-02T18:33:42.601358",
+    "updated_at": "2026-02-02T18:33:42.601374"
+  },
+  "youtube_trigger": {
+    "node_type": "youtube_trigger",
+    "display_name": "YouTube Trigger",
+    "description": "Triggers workflow on YouTube events",
+    "category": "triggers",
+    "python_class": "workflows.nodes.triggers.youtube_trigger.YouTubeTriggerNode",
+    "module_path": "workflows.nodes.triggers.youtube_trigger",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "trigger_type": {
+          "type": "select",
+          "title": "Trigger Type",
+          "options": [
+            "channel",
+            "playlist",
+            "search"
+          ],
+          "default": "channel"
+        },
+        "channel_id": {
+          "type": "string",
+          "title": "Channel ID",
+          "visible_if": {
+            "field": "trigger_type",
+            "equals": "channel"
+          }
+        },
+        "playlist_id": {
+          "type": "string",
+          "title": "Playlist ID",
+          "visible_if": {
+            "field": "trigger_type",
+            "equals": "playlist"
+          }
+        },
+        "search_query": {
+          "type": "string",
+          "title": "Search Query",
+          "visible_if": {
+            "field": "trigger_type",
+            "equals": "search"
+          }
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-08T13:24:33.562802",
+    "updated_at": "2026-02-08T13:24:33.562815"
+  },
+  "gmail_trigger": {
+    "node_type": "gmail_trigger",
+    "display_name": "Gmail Trigger",
+    "description": "Triggers workflow on incoming Gmail messages",
+    "category": "triggers",
+    "python_class": "workflows.nodes.triggers.gmail_trigger.GmailTriggerNode",
+    "module_path": "workflows.nodes.triggers.gmail_trigger",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "watch_type": {
+          "type": "select",
+          "title": "Watch Type",
+          "options": [
+            "inbox",
+            "sent",
+            "label"
+          ],
+          "default": "inbox"
+        },
+        "label_name": {
+          "type": "string",
+          "title": "Label Name",
+          "description": "Only if Watch Type is Label",
+          "placeholder": "INBOX",
+          "visible_if": {
+            "field": "watch_type",
+            "equals": "label"
+          }
+        },
+        "only_unread": {
+          "type": "boolean",
+          "title": "Only Unread",
+          "default": true
+        },
+        "from_filter": {
+          "type": "string",
+          "title": "From Filter",
+          "description": "Filter by sender email",
+          "placeholder": "example@gmail.com",
+          "default": ""
+        }
+      }
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-08T13:24:33.581535",
+    "updated_at": "2026-02-08T13:24:33.581552"
+  },
+  "database_query": {
+    "node_type": "database_query",
+    "display_name": "Database Query",
+    "description": "Execute SQL queries on external databases",
+    "category": "data",
+    "python_class": "workflows.nodes.database_query_node.DatabaseQueryNode",
+    "module_path": "workflows.nodes.database_query_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "db_type": {
+          "type": "string",
+          "title": "Database Type",
+          "enum": [
+            "postgres",
+            "mysql"
+          ],
+          "default": "postgres"
+        },
+        "credential_id": {
+          "type": "string",
+          "title": "Credential",
+          "widget": "credential_select",
+          "credential_type": "database_credentials",
+          "required": true
+        },
+        "sql_query": {
+          "type": "string",
+          "title": "SQL Query",
+          "widget": "textarea",
+          "default": "SELECT * FROM users LIMIT 10;",
+          "description": "Use ? or %s for parameters depending on DB type"
+        },
+        "query_params": {
+          "type": "string",
+          "title": "Query Parameters (JSON)",
+          "widget": "textarea",
+          "description": "List or Dict of parameters for safe execution. E.g. [1, 'active'] or {'status': 'active'}"
+        }
+      },
+      "required": [
+        "db_type",
+        "credential_id",
+        "sql_query"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-08T19:40:36.386053",
+    "updated_at": "2026-02-08T19:40:36.386061"
+  },
+  "file_storage": {
+    "node_type": "file_storage",
+    "display_name": "File Storage",
+    "description": "Read and write files in sandboxed storage",
+    "category": "data",
+    "python_class": "workflows.nodes.file_storage_node.FileStorageNode",
+    "module_path": "workflows.nodes.file_storage_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "type": "string",
+          "title": "Operation",
+          "enum": [
+            "read",
+            "write",
+            "append",
+            "delete"
+          ],
+          "default": "read"
+        },
+        "file_path": {
+          "type": "string",
+          "title": "File Path",
+          "description": "Relative to sandbox (/tmp/workflows/). E.g. 'data/output.json'",
+          "required": true
+        },
+        "content": {
+          "type": "string",
+          "title": "Content",
+          "widget": "textarea",
+          "description": "Content to write. For binary, provide base64 string.",
+          "displayOptions": {
+            "show": {
+              "operation": [
+                "write",
+                "append"
+              ]
+            }
+          }
+        },
+        "encoding": {
+          "type": "string",
+          "title": "Encoding",
+          "enum": [
+            "utf-8",
+            "ascii",
+            "binary"
+          ],
+          "default": "utf-8",
+          "displayOptions": {
+            "show": {
+              "operation": [
+                "read",
+                "write",
+                "append"
+              ]
+            }
+          }
+        },
+        "overwrite": {
+          "type": "boolean",
+          "title": "Overwrite",
+          "default": true,
+          "displayOptions": {
+            "show": {
+              "operation": [
+                "write"
+              ]
+            }
+          }
+        }
+      },
+      "required": [
+        "operation",
+        "file_path"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-08T19:40:36.394124",
+    "updated_at": "2026-02-08T19:40:36.394137"
+  },
+  "bigquery": {
+    "node_type": "bigquery",
+    "display_name": "Google BigQuery",
+    "description": "Execute SQL queries on BigQuery data",
+    "category": "data",
+    "python_class": "workflows.nodes.bigquery_node.BigQueryNode",
+    "module_path": "workflows.nodes.bigquery_node",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "Google Credential",
+          "widget": "credential_select",
+          "credential_type": "google_bigquery",
+          "required": true
+        },
+        "project_id": {
+          "type": "string",
+          "title": "Project ID",
+          "description": "GCP Project ID",
+          "required": true
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "run_query"
+          ],
+          "default": "run_query",
+          "title": "Operation"
+        },
+        "sql_query": {
+          "type": "string",
+          "title": "SQL Query",
+          "widget": "textarea",
+          "description": "Standard SQL query",
+          "displayOptions": {
+            "show": {
+              "operation": [
+                "run_query"
+              ]
+            }
+          }
+        }
+      },
+      "required": [
+        "project_id",
+        "credential_id",
+        "operation"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-08T19:40:36.414975",
+    "updated_at": "2026-02-08T19:40:36.414987"
+  },
+  "send_email": {
+    "node_type": "send_email",
+    "display_name": "Send Email",
+    "description": "Send emails with automatic Gmail OAuth / SMTP routing",
+    "category": "actions",
+    "python_class": "workflows.nodes.action_nodes.EmailSenderNode",
+    "module_path": "workflows.nodes.action_nodes",
+    "status": "enabled",
+    "parameter_schema": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string",
+          "title": "Email Credential",
+          "widget": "credential_select",
+          "credential_type": "email",
+          "required": true
+        },
+        "to_email": {
+          "type": "string",
+          "title": "To Email",
+          "description": "Recipient address or comma-separated list. Supports templates.",
+          "required": true
+        },
+        "cc_emails": {
+          "type": "string",
+          "title": "CC Email",
+          "description": "CC recipients, comma-separated. Supports templates."
+        },
+        "bcc_emails": {
+          "type": "string",
+          "title": "BCC Email",
+          "description": "BCC recipients, comma-separated. Supports templates."
+        },
+        "subject": {
+          "type": "string",
+          "title": "Subject",
+          "description": "Email subject. Supports templates.",
+          "required": true
+        },
+        "email_body": {
+          "type": "string",
+          "title": "Email Body",
+          "widget": "textarea",
+          "description": "If empty, uses incoming data. Supports templates."
+        },
+        "content_type": {
+          "type": "string",
+          "title": "Content Type",
+          "enum": [
+            "plain_text",
+            "html"
+          ],
+          "default": "plain_text"
+        },
+        "attachments": {
+          "type": "string",
+          "title": "Attachments (JSON)",
+          "widget": "textarea",
+          "placeholder": "[{\"filename\": \"report.pdf\", \"url\": \"https://...\"}]",
+          "description": "JSON list of objects with 'filename' and 'url'."
+        },
+        "from": {
+          "type": "string",
+          "title": "From Email",
+          "description": "Optional override for sender address."
+        },
+        "smtp_config": {
+          "type": "object",
+          "title": "SMTP Configuration (Fallback)",
+          "properties": {
+            "host": {
+              "type": "string",
+              "title": "SMTP Host"
+            },
+            "port": {
+              "type": "integer",
+              "title": "SMTP Port",
+              "default": 587
+            },
+            "username": {
+              "type": "string",
+              "title": "Username"
+            },
+            "password": {
+              "type": "string",
+              "title": "Password",
+              "format": "password"
+            },
+            "use_tls": {
+              "type": "boolean",
+              "title": "Use TLS",
+              "default": true
+            },
+            "use_ssl": {
+              "type": "boolean",
+              "title": "Use SSL",
+              "default": false
+            }
+          }
+        }
+      },
+      "required": [
+        "credential_id",
+        "to_email",
+        "subject"
+      ]
+    },
+    "version": "1.0.0",
+    "created_at": "2026-02-10T17:14:22.837780",
+    "updated_at": "2026-02-10T17:14:22.837810"
+  }
+}

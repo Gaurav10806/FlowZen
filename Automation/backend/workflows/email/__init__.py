@@ -1,0 +1,1 @@
+# Email module for workflow automation system
