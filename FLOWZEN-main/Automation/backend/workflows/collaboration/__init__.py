@@ -1,1 +1,0 @@
-# Collaboration module for real-time workflow editing

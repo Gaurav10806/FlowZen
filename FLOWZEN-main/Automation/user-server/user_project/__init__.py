@@ -1,1 +1,0 @@
-# User server project initialization
