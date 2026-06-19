@@ -1,0 +1,134 @@
+services:
+  # Database - Must start first
+  db:
+    image: postgres:16-alpine
+    container_name: automation-db
+    restart: always
+    environment:
+      POSTGRES_DB: automation_db
+      POSTGRES_USER: automation_user
+      POSTGRES_PASSWORD: automation_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U automation_user -d automation_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Must start second
+  redis:
+    image: redis:7-alpine
+    container_name: automation-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend - Must start after DB and Redis
+  backend:
+    container_name: automation-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - docker/.env
+    volumes:
+      - ${PWD}/Automation/backend:/app
+      - ${PWD}/Automation/frontend:/app/frontend
+      - ${PWD}/Automation/backend/credentials_storage:/app/credentials_storage
+      - ${PWD}/Automation/backend/templates_storage:/app/templates_storage
+      - media_files:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=project.settings
+      - DJANGO_DEBUG=True
+      - REDIS_HOST=redis
+      - DATABASE_HOST=db
+      - DATABASE_NAME=automation_db
+      - DATABASE_USER=automation_user
+      - DATABASE_PASSWORD=automation_pass
+      - OAUTHLIB_INSECURE_TRANSPORT=1
+      - CREDENTIALS_MASTER_KEY=IeOn9kTi1EaZWc2cgToDvqJq9PjrZe8oi-FOlhDwZaM=
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "python", "docker_healthcheck.py" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Worker - Must start after Backend is healthy
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: automation-worker
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    env_file:
+      - docker/.env
+    command: python start_worker_safe.py
+    volumes:
+      - ${PWD}/Automation/backend:/app
+      - ${PWD}/Automation/frontend:/app/frontend
+      - media_files:/app/media
+      - static_files:/app/staticfiles
+      - template_storage:/app/templates_storage
+      - credential_storage:/app/credentials_storage
+    depends_on:
+      backend:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Beat - Must start LAST after Worker is running
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: automation-beat
+    restart: always
+    env_file:
+      - docker/.env
+    command: python start_beat_safe.py
+    volumes:
+      - ${PWD}/Automation/backend:/app
+      - ${PWD}/Automation/frontend:/app/frontend
+      - media_files:/app/media
+      - static_files:/app/staticfiles
+      - template_storage:/app/templates_storage
+      - credential_storage:/app/credentials_storage
+    depends_on:
+      - worker
+
+volumes:
+  pgdata:
+    driver: local
+  media_files:
+    driver: local
+  static_files:
+    driver: local
+  template_storage:
+    driver: local
+  credential_storage:
+    driver: local
+
+networks:
+  default:
+    name: automation-network

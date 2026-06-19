@@ -1,0 +1,84 @@
+{
+  "name": "Enhanced Demo Workflow",
+  "description": "Demonstrates the enhanced UI capabilities",
+  "nodes": [
+    {
+      "id": "node_1",
+      "type": "webhook",
+      "category": "tools",
+      "position": {
+        "x": 100,
+        "y": 150
+      },
+      "config": {
+        "url": "https://api.example.com/webhook",
+        "method": "POST"
+      },
+      "status": "ready"
+    },
+    {
+      "id": "node_2",
+      "type": "if",
+      "category": "brain",
+      "position": {
+        "x": 350,
+        "y": 100
+      },
+      "config": {
+        "condition": "data.status === 'success'"
+      },
+      "status": "ready"
+    },
+    {
+      "id": "node_3",
+      "type": "email",
+      "category": "tools",
+      "position": {
+        "x": 600,
+        "y": 50
+      },
+      "config": {
+        "to": "user@example.com",
+        "subject": "Success Notification",
+        "body": "The workflow completed successfully!"
+      },
+      "status": "ready"
+    },
+    {
+      "id": "node_4",
+      "type": "slack",
+      "category": "tools",
+      "position": {
+        "x": 600,
+        "y": 200
+      },
+      "config": {
+        "channel": "#alerts",
+        "message": "Workflow failed - please check logs"
+      },
+      "status": "ready"
+    }
+  ],
+  "edges": [
+    {
+      "from": "node_1",
+      "to": "node_2",
+      "status": "idle"
+    },
+    {
+      "from": "node_2",
+      "to": "node_3",
+      "status": "idle"
+    },
+    {
+      "from": "node_2",
+      "to": "node_4",
+      "status": "idle"
+    }
+  ],
+  "metadata": {
+    "created": "2024-01-04T12:00:00Z",
+    "nodeCount": 4,
+    "edgeCount": 3
+  }
+}

@@ -1,0 +1,144 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-api
+  namespace: workflow-automation
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: django-api
+  template:
+    metadata:
+      labels:
+        app: django-api
+    spec:
+      initContainers:
+      - name: migrate
+        image: workflow-automation/django:latest
+        command: ['python', 'manage.py', 'migrate']
+        envFrom:
+        - configMapRef:
+            name: workflow-automation-config
+        - secretRef:
+            name: workflow-automation-secrets
+      containers:
+      - name: django-api
+        image: workflow-automation/django:latest
+        ports:
+        - containerPort: 8000
+        - containerPort: 8001  # Metrics port
+        envFrom:
+        - configMapRef:
+            name: workflow-automation-config
+        - secretRef:
+            name: workflow-automation-secrets
+        command: ['gunicorn']
+        args:
+        - '--bind'
+        - '0.0.0.0:8000'
+        - '--workers'
+        - '4'
+        - '--worker-class'
+        - 'gevent'
+        - '--worker-connections'
+        - '1000'
+        - '--max-requests'
+        - '1000'
+        - '--max-requests-jitter'
+        - '100'
+        - '--timeout'
+        - '30'
+        - '--keep-alive'
+        - '5'
+        - '--access-logfile'
+        - '-'
+        - '--error-logfile'
+        - '-'
+        - 'project.wsgi:application'
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health/
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready/
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: media-storage
+          mountPath: /app/media
+      volumes:
+      - name: media-storage
+        persistentVolumeClaim:
+          claimName: media-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: workflow-automation
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: shared-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-api-service
+  namespace: workflow-automation
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8001"
+    prometheus.io/path: "/metrics"
+spec:
+  selector:
+    app: django-api
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+  - name: metrics
+    port: 8001
+    targetPort: 8001
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: django-api-hpa
+  namespace: workflow-automation
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: django-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

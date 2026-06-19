@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ workflow.name }} (Public){% endblock %}
+
+{% block content %}
+<div class="public-view-container"
+    style="height: 100vh; display: flex; flex-direction: column; background: var(--bg-primary);">
+    <!-- Header -->
+    <div class="public-header"
+        style="height: 60px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); background: var(--glass-bg); backdrop-filter: blur(10px);">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div
+                style="width: 32px; height: 32px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-project-diagram" style="color: white;"></i>
+            </div>
+            <div>
+                <h1 style="margin: 0; font-size: 1.1rem; font-weight: 600;">{{ workflow.name }}</h1>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">by {{ workflow.owner.username }}</span>
+            </div>
+        </div>
+        <div>
+            <a href="/login/" class="btn btn-primary btn-sm">Try FlowZen</a>
+        </div>
+    </div>
+
+    <!-- Read-Only Canvas -->
+    <div id="workflow-canvas" style="flex: 1; position: relative; overflow: hidden;"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Core Canvas Libs (Read Only Mode) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-shape@3"></script>
+<script src="{% static 'js/canvas/canvas-core.js' %}"></script>
+
+<!-- Safely pass data to JS -->
+{{ workflow.graph|json_script:"workflow-graph-data" }}
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize Read-Only Canvas
+        const graphData = JSON.parse(document.getElementById('workflow-graph-data').textContent);
+
+        // Mock Canvas Manager for Read-Only
+        window.advancedCanvas = new AdvancedCanvas();
+        window.advancedCanvas.readOnly = true;
+        window.advancedCanvas.importWorkflow(graphData);
+
+        // Disable interactions
+        d3.select('#workflow-canvas').style('pointer-events', 'none');
+    });
+</script>
+{% endblock %}

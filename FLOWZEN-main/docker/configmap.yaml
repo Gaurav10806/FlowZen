@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workflow-automation-config
+  namespace: workflow-automation
+data:
+  # Django Settings
+  DJANGO_SETTINGS_MODULE: "project.settings.production"
+  DEBUG: "False"
+  ALLOWED_HOSTS: "*.workflow-automation.com,localhost,127.0.0.1"
+  
+  # Database Configuration
+  DATABASE_ENGINE: "django.db.backends.postgresql"
+  DATABASE_NAME: "workflow_automation"
+  DATABASE_HOST: "postgres-service"
+  DATABASE_PORT: "5432"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  
+  # Celery Configuration
+  CELERY_BROKER_URL: "redis://redis-service:6379/0"
+  CELERY_RESULT_BACKEND: "redis://redis-service:6379/0"
+  
+  # Application Configuration
+  MAX_CONCURRENT_EXECUTIONS: "1000"
+  DEFAULT_EXECUTION_TIMEOUT: "3600"
+  WORKFLOW_CACHE_TTL: "300"
+  
+  # Monitoring
+  PROMETHEUS_ENABLED: "True"
+  METRICS_PORT: "8001"
+  
+  # Security
+  SECURE_SSL_REDIRECT: "True"
+  SECURE_HSTS_SECONDS: "31536000"
+  SECURE_CONTENT_TYPE_NOSNIFF: "True"
+  SECURE_BROWSER_XSS_FILTER: "True"
+  
+  # Logging
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  
+  # Feature Flags
+  ENABLE_AI_FEATURES: "True"
+  ENABLE_ADVANCED_ANALYTICS: "True"
+  ENABLE_ENTERPRISE_FEATURES: "True"

@@ -1,0 +1,736 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - FLOWZEN{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    {% include "includes/sidebar.html" %}
+
+    <main class="dashboard-main">
+        <div class="content-grid slide-in-staggered">
+
+            <div style="display: grid; grid-template-columns: 260px 1fr; gap: 40px;">
+
+                <!-- Settings Sidebar (Left Panel) -->
+                <div class="glass-panel" style="padding: 16px !important; height: fit-content;">
+                    <nav class="settings-nav">
+                        <a href="#profile" class="settings-link active" onclick="switchTab(event, 'profile')">
+                            <i class="fas fa-user-circle" style="width: 20px; text-align: center;"></i> Profile
+                        </a>
+                        <a href="#notifications" class="settings-link" onclick="switchTab(event, 'notifications')">
+                            <i class="fas fa-bell" style="width: 20px; text-align: center;"></i> Notifications
+                        </a>
+                        <a href="#appearance" class="settings-link" onclick="switchTab(event, 'appearance')">
+                            <i class="fas fa-palette" style="width: 20px; text-align: center;"></i> Appearance
+                        </a>
+                        <a href="#api" class="settings-link" onclick="switchTab(event, 'api')">
+                            <i class="fas fa-code" style="width: 20px; text-align: center;"></i> API Keys
+                        </a>
+                        <div style="height: 1px; background: #F3F4F6; margin: 8px 12px;"></div>
+                        <a href="#billing" class="settings-link" onclick="switchTab(event, 'billing')">
+                            <i class="fas fa-credit-card" style="width: 20px; text-align: center;"></i> Billing
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Settings Content -->
+                <div>
+                    <!-- Profile Tab -->
+                    <div id="profile-tab" class="settings-tab active slide-in">
+                        <div style="margin-bottom: 40px; border-bottom: 1px solid #E5E7EB; padding-bottom: 24px;">
+                            <h1 style="font-size: 34px; font-weight: 800; color: #111827; margin:0 0 8px 0;">Account
+                                Settings</h1>
+                            <p style="color: #6B7280; font-size: 15px; margin:0;">Manage your profile, avatar, and
+                                personal details securely.</p>
+                        </div>
+
+                        <!-- Compact Avatar Card -->
+                        <div class="glass-card profile-header-card"
+                            style="margin-bottom: 24px; padding: 22px !important; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <div style="position: relative; width: 72px; height: 72px;">
+                                    <div
+                                        style="position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(135deg, #7C5CFF, #FF6A3D); padding: 2px;">
+                                        <div
+                                            style="width: 100%; height: 100%; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                            {% if request.user.profile.avatar %}
+                                            <img src="{{ request.user.profile.avatar.url }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% else %}
+                                            <div style="font-size: 24px; font-weight: 700; color: #111827;">
+                                                {{ request.user.username|default:"A"|slice:":1"|upper }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 id="display-username"
+                                        style="font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 4px 0;">{{
+                                        request.user.username }}</h3>
+                                    <p style="font-size: 13px; color: #6B7280; margin: 0;">{{ request.user.email }}</p>
+                                </div>
+                            </div>
+                            <button class="btn-magnetic" onclick="document.getElementById('input-avatar').click()">
+                                <i class="fas fa-camera" style="margin-right: 8px;"></i> Change Avatar
+                            </button>
+                        </div>
+
+                        <!-- Form Information Card -->
+                        <div class="glass-card">
+                            <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 24px 0;">Profile
+                                Information</h3>
+
+                            <div class="row g-4">
+                                <div class="col-12" style="margin-bottom: 20px;">
+                                    <div style="display:none;">
+                                        <input type="file" id="input-avatar" class="form-control" accept="image/*"
+                                            style="padding: 8px;">
+                                    </div>
+                                    <div class="form-text text-muted" style="font-size:12px; margin-top:4px;">
+                                        Recommended: Square JPG/PNG, max 2MB.</div>
+                                </div>
+
+                                <div class="col-md-6" style="margin-bottom: 20px;">
+                                    <label class="form-label"
+                                        style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Username</label>
+                                    <input type="text" id="input-username" class="form-control glass-input"
+                                        value="{{ request.user.username }}" placeholder="e.g. alex_dev">
+                                </div>
+                                <div class="col-md-6" style="margin-bottom: 20px;">
+                                    <label class="form-label"
+                                        style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Email
+                                        Address</label>
+                                    <input type="email" id="input-email" class="form-control glass-input"
+                                        value="{{ request.user.email }}" readonly
+                                        style="background-color: #F3F4F6; cursor: not-allowed;">
+                                </div>
+                                <div class="col-12" style="margin-bottom: 20px;">
+                                    <label class="form-label"
+                                        style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Bio</label>
+                                    <textarea id="input-bio" class="form-control glass-input" rows="4"
+                                        placeholder="Tell us a little about yourself..."></textarea>
+                                </div>
+                            </div>
+
+                            <div
+                                style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #F3F4F6; display: flex; justify-content: space-between; align-items: center;">
+                                <!-- LOGOUT BUTTON -->
+                                <a href="javascript:void(0)" onclick="logoutUser()" class="btn-magnetic btn-danger-glow"
+                                    style="color: #EF4444; border-color: rgba(239,68,68,0.3);">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+
+                                <button class="btn-magnetic btn-primary" onclick="saveSettings()">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications Tab -->
+                    <div id="notifications-tab" class="settings-tab slide-in" style="display: none;">
+                        <div style="margin-bottom: 40px; border-bottom: 1px solid #E5E7EB; padding-bottom: 24px;">
+                            <h1 style="font-size: 34px; font-weight: 800; color: #111827; margin:0 0 8px 0;">
+                                Notifications</h1>
+                            <p style="color: #6B7280; font-size: 15px; margin:0;">Control delivery channels and alert
+                                triggers.</p>
+                        </div>
+
+                        <!-- Delivery Channels -->
+                        <div class="glass-card mb-4">
+                            <h3 class="card-title"><i class="fas fa-broadcast-tower"></i> Delivery Channels</h3>
+
+                            <div class="setting-row">
+                                <div>
+                                    <div class="setting-label">Email Notifications</div>
+                                    <div class="setting-desc">Receive critical alerts via email.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="notif-email-enabled"
+                                        onchange="saveNotificationSettings()">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div class="setting-row">
+                                <div>
+                                    <div class="setting-label">Telegram Bot Alerts</div>
+                                    <div class="setting-desc">Get instant messages on Telegram.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="notif-telegram-enabled"
+                                        onchange="saveNotificationSettings()">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div class="setting-row" style="border-bottom: 0;">
+                                <div>
+                                    <div class="setting-label">WhatsApp Alerts</div>
+                                    <div class="setting-desc">Receive alerts on WhatsApp Business.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="notif-whatsapp-enabled"
+                                        onchange="saveNotificationSettings()">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Alert Triggers -->
+                        <div class="glass-card mb-4">
+                            <h3 class="card-title"><i class="fas fa-bolt"></i> Alert Triggers</h3>
+                            <div class="d-flex flex-wrap gap-3 mt-3">
+                                <label class="check-pill">
+                                    <input type="checkbox" checked disabled> Execution Failed
+                                </label>
+                                <label class="check-pill">
+                                    <input type="checkbox" checked disabled> Security Alerts
+                                </label>
+                                <label class="check-pill">
+                                    <input type="checkbox" disabled> Workflow Success (Pro)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Quiet Hours -->
+                        <div class="glass-card mb-4">
+                            <div class="setting-row" style="border-bottom: 0; padding-bottom: 0;">
+                                <div>
+                                    <div class="setting-label"><i class="fas fa-moon"></i> Quiet Hours</div>
+                                    <div class="setting-desc">Pause notifications during specific times.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="notif-quiet-enabled"
+                                        onchange="toggleQuietInputs(); saveNotificationSettings()">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <div id="quiet-inputs"
+                                style="display: none; padding-top: 20px; gap: 20px; border-top: 1px solid #F3F4F6; margin-top: 16px;">
+                                <div style="flex: 1;">
+                                    <label class="form-label">Start Time</label>
+                                    <input type="time" id="notif-quiet-start" class="form-control"
+                                        onchange="saveNotificationSettings()">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label class="form-label">End Time</label>
+                                    <input type="time" id="notif-quiet-end" class="form-control"
+                                        onchange="saveNotificationSettings()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification History Preview -->
+                        <div class="glass-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h3 class="card-title m-0"><i class="fas fa-history"></i> Recent History</h3>
+                                <button class="btn-magnetic" style="font-size: 12px; padding: 6px 12px;"
+                                    onclick="loadNotificationPreview()">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                            <div id="notification-preview-list"
+                                style="display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Populated by JS -->
+                                <div class="text-center text-muted py-3">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Appearance Tab -->
+                    <div id="appearance-tab" class="settings-tab slide-in" style="display: none;">
+                        <div class="glass-panel">
+                            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">Appearance & Theme
+                            </h2>
+                            <p class="text-muted mb-4">Customize the "Acetate" UI to match your brand or preference.</p>
+                            <!-- ... (Existing Appearance Content Reduced for brevity but logic kept in JS) ... -->
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label class="form-label text-muted d-block mb-2">Primary Action Color</label>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <input type="color" id="theme-primary-color"
+                                                class="form-control form-control-color glass-input" value="#4f46e5"
+                                                style="width: 60px; height: 40px; padding: 4px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: flex-end;">
+                                <button class="btn-magnetic btn-primary" onclick="saveSettings()">Save Theme</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API Keys Tab -->
+                    <div id="api-tab" class="settings-tab slide-in" style="display: none;">
+                        <div class="glass-panel">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h2 style="font-size: 1.25rem; font-weight: 600;">API Keys</h2>
+                                </div>
+                                <button class="btn-magnetic btn-primary"><i class="fas fa-plus"></i> Generate New
+                                    Key</button>
+                            </div>
+                            <div class="glass-card"
+                                style="margin-bottom: 1rem; padding: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <div style="font-weight: 600;">Production Key</div>
+                                    <div style="font-family: monospace; color: var(--text-muted); font-size: 0.9rem;">
+                                        pk_live_...x892</div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn-magnetic" title="Copy"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Spacer to ensure save button is fully visible -->
+            <div style="height: 100px;"></div>
+
+        </div>
+    </main>
+</div>
+
+<script>
+    // --- UTILS ---
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+
+    function switchTab(event, tabId) {
+        event.preventDefault();
+        document.querySelectorAll('.settings-link').forEach(l => l.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.querySelectorAll('.settings-tab').forEach(t => {
+            t.style.display = 'none';
+            t.classList.remove('active');
+        });
+        const activeTab = document.getElementById(tabId + '-tab');
+        activeTab.style.display = 'block';
+        setTimeout(() => activeTab.classList.add('active'), 10);
+
+        // Load data on tab switch if needed
+        if (tabId === 'notifications') {
+            loadNotificationSettings();
+            loadNotificationPreview();
+        }
+    }
+
+    // --- PROFILE LOGIC ---
+    async function saveSettings() {
+        const btn = document.querySelector('button[onclick="saveSettings()"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+
+        // Use FormData to handle file uploads
+        const formData = new FormData();
+        formData.append('bio', document.getElementById('input-bio').value);
+        formData.append('username', document.getElementById('input-username').value);
+        // Email is read-only usually, but send it if needed or omit
+
+        const avatarInput = document.getElementById('input-avatar');
+        if (avatarInput && avatarInput.files.length > 0) {
+            formData.append('avatar', avatarInput.files[0]);
+        }
+
+        // Theme config (sent as JSON string if using FormData, or handle separately)
+        // For simplicity, we'll send theme_config as a JSON string field if the backend supports it, 
+        // OR we just stick to JSON if no file is selected. 
+        // BUT standard mix is tricky. Let's assume the backend handles multipart/form-data for profile.
+        // If not, we might need two requests. Let's try FormData first as it's standard for files.
+        formData.append('theme_primary_color', document.getElementById('theme-primary-color')?.value || '#4f46e5');
+
+        try {
+            const res = await fetch('/api/user/profile/', {
+                method: 'PUT',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                    // Content-Type must be undefined for FormData to set boundary
+                },
+                body: formData
+            });
+
+            const result = await res.json();
+
+            if (res.ok && result.status === 'success') {
+                window.showToast(result.message || "Profile saved successfully! 👤", 'success');
+                // Refresh to show new avatar if changed
+                if (avatarInput && avatarInput.files.length > 0) {
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            } else {
+                const errorMsg = result.message || "Failed to save profile";
+                const detail = result.errors ? Object.values(result.errors).flat().join(', ') : '';
+                window.showToast(detail ? `${errorMsg}: ${detail}` : errorMsg, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            window.showToast("Network error occurred while saving", 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    async function loadProfile() {
+        try {
+            const res = await fetch('/api/user/profile/');
+            if (res.ok) {
+                const data = await res.json();
+                if (document.getElementById('input-bio')) document.getElementById('input-bio').value = data.bio || '';
+                if (document.getElementById('input-username')) document.getElementById('input-username').value = data.username || '';
+                if (document.getElementById('input-email')) document.getElementById('input-email').value = data.email || '';
+                if (document.getElementById('display-username')) document.getElementById('display-username').innerText = data.username || '';
+            }
+        } catch (e) { }
+    }
+
+    // --- NOTIFICATION LOGIC ---
+    async function loadNotificationSettings() {
+        try {
+            const res = await fetch('/api/notifications/settings/');
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('notif-email-enabled').checked = data.email_enabled;
+                document.getElementById('notif-telegram-enabled').checked = data.telegram_enabled;
+                document.getElementById('notif-whatsapp-enabled').checked = data.whatsapp_enabled;
+                document.getElementById('notif-quiet-enabled').checked = data.quiet_hours_enabled;
+                document.getElementById('notif-quiet-start').value = data.quiet_hours_start || '';
+                document.getElementById('notif-quiet-end').value = data.quiet_hours_end || '';
+                toggleQuietInputs();
+            }
+        } catch (e) { console.error("Error loading notification settings", e); }
+    }
+
+    async function saveNotificationSettings() {
+        const json = {
+            email_enabled: document.getElementById('notif-email-enabled').checked,
+            telegram_enabled: document.getElementById('notif-telegram-enabled').checked,
+            whatsapp_enabled: document.getElementById('notif-whatsapp-enabled').checked,
+            quiet_hours_enabled: document.getElementById('notif-quiet-enabled').checked,
+            quiet_hours_start: document.getElementById('notif-quiet-start').value,
+            quiet_hours_end: document.getElementById('notif-quiet-end').value
+        };
+
+        try {
+            await fetch('/api/notifications/settings/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify(json)
+            });
+            if (window.showToast) window.showToast("Notification preferences saved", 'success');
+        } catch (e) {
+            console.error("Error saving notification settings", e);
+            if (window.showToast) window.showToast("Failed to save preferences", 'error');
+        }
+    }
+
+    function toggleQuietInputs() {
+        const enabled = document.getElementById('notif-quiet-enabled').checked;
+        document.getElementById('quiet-inputs').style.display = enabled ? 'flex' : 'none';
+    }
+
+    async function loadNotificationPreview() {
+        const container = document.getElementById('notification-preview-list');
+        try {
+            const res = await fetch('/api/notifications/list/?limit=5');
+            if (res.ok) {
+                const data = await res.json();
+                container.innerHTML = '';
+                if (data.results.length === 0) {
+                    container.innerHTML = '<div class="text-muted text-center py-3">No recent notifications</div>';
+                    return;
+                }
+                data.results.forEach(n => {
+                    const iconColor = n.type === 'error' ? '#EF4444' : (n.type === 'success' ? '#10B981' : '#3B82F6');
+                    const icon = n.type === 'error' ? 'fa-exclamation-circle' : (n.type === 'success' ? 'fa-check-circle' : 'fa-info-circle');
+
+                    const el = document.createElement('div');
+                    el.className = 'glass-card-mini';
+                    el.style = `padding: 12px; border-radius: 12px; background: #F9FAFB; display: flex; gap: 12px; align-items: center; border-left: 3px solid ${iconColor};`;
+                    el.innerHTML = `
+                        <i class="fas ${icon}" style="color: ${iconColor};"></i>
+                        <div style="flex:1">
+                            <div style="font-weight: 600; font-size: 13px;">${n.title}</div>
+                            <div style="font-size: 12px; color: #6B7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">${n.message}</div>
+                        </div>
+                        <div style="font-size: 11px; color: #9CA3AF;">${new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    `;
+                    container.appendChild(el);
+                });
+            }
+        } catch (e) {
+            container.innerHTML = '<div class="text-danger">Failed to load history</div>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadProfile();
+        // Check hash
+        if (window.location.hash) {
+            const tabName = window.location.hash.substring(1);
+            const link = document.querySelector(`.settings-link[href="#${tabName}"]`);
+            if (link) link.click();
+        }
+    });
+
+    function logoutUser() {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_role');
+        window.location.href = '/login/';
+    }
+</script>
+
+<style>
+    /* Style-6 Overrides */
+    .dashboard-main {
+        max-width: 980px !important;
+        margin: 0 auto !important;
+        padding-top: 40px !important;
+        padding-right: 10px;
+        padding-bottom: 80px;
+        scrollbar-width: none;
+    }
+
+    .dashboard-main::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .slide-in,
+    .glass-card,
+    .glass-panel {
+        animation: fadeUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+    }
+
+    .glass-panel {
+        background: #FFFFFF !important;
+        border-radius: 18px !important;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    .settings-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 18px;
+        color: #4B5563;
+        text-decoration: none;
+        border-radius: 14px;
+        transition: all 0.25s ease;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .settings-link:hover {
+        background: #F3F4F6;
+        color: #111827;
+        transform: translateX(6px);
+    }
+
+    .settings-link.active {
+        background: linear-gradient(90deg, #7C5CFF, #FF6A3D);
+        color: white;
+        box-shadow: 0 8px 20px rgba(124, 92, 255, 0.25);
+        font-weight: 600;
+        transform: translateX(6px);
+    }
+
+    .settings-link.active i {
+        color: white;
+    }
+
+    .glass-card {
+        background: #FFFFFF !important;
+        border-radius: 20px !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+        padding: 24px !important;
+        border: 1px solid rgba(0, 0, 0, 0.02);
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-control,
+    .glass-input {
+        height: 48px !important;
+        border-radius: 16px !important;
+        border: 1px solid #E5E7EB !important;
+        padding: 0 16px !important;
+        font-size: 15px !important;
+        background: #F9FAFB !important;
+        color: #111827 !important;
+    }
+
+    .form-control:focus {
+        border-color: #7C5CFF !important;
+        box-shadow: 0 0 0 5px rgba(124, 92, 255, 0.18) !important;
+        background: #FFFFFF !important;
+    }
+
+    textarea.form-control {
+        min-height: 130px !important;
+        padding: 16px !important;
+        resize: none;
+    }
+
+    .btn-magnetic {
+        background: #FFFFFF;
+        border: 1px solid #E5E7EB;
+        color: #4B5563;
+        padding: 10px 20px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 500;
+        font-size: 13px;
+    }
+
+    .btn-magnetic:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-magnetic.btn-primary {
+        background: linear-gradient(90deg, #7C5CFF, #FF6A3D) !important;
+        border: none !important;
+        color: white;
+        box-shadow: 0 4px 15px rgba(124, 92, 255, 0.2);
+    }
+
+    .btn-danger-glow:hover {
+        background: #FEF2F2 !important;
+        color: #DC2626 !important;
+        border-color: #DC2626 !important;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+    }
+
+    /* Switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #E5E7EB;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    input:checked+.slider {
+        background-color: #7C5CFF;
+    }
+
+    input:checked+.slider:before {
+        transform: translateX(20px);
+    }
+
+    /* Setting Row */
+    .setting-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid #F3F4F6;
+    }
+
+    .setting-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 15px;
+    }
+
+    .setting-desc {
+        font-size: 13px;
+        color: #6B7280;
+        margin-top: 2px;
+    }
+
+    /* Pills */
+    .check-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #F3F4F6;
+        border-radius: 99px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #4B5563;
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+
+    .check-pill input {
+        accent-color: #7C5CFF;
+    }
+</style>
+{% endblock %}

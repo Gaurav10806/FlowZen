@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Create Workflow - FLOWZEN{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-plus-circle"></i>
+        Create New Workflow
+    </h1>
+    <p class="page-subtitle">Build a new automation workflow from scratch or use a template</p>
+</div>
+
+<!-- Quick Start Options -->
+<div class="grid grid-cols-2" style="margin-bottom: 2rem;">
+    <div class="card">
+        <div class="card-body" style="text-align: center; padding: 2rem;">
+            <div
+                style="width: 4rem; height: 4rem; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem;">
+                <i class="fas fa-magic"></i>
+            </div>
+            <h3>Start from Template</h3>
+            <p style="color: var(--gray-600); margin-bottom: 1.5rem;">Choose from pre-built workflow templates to get
+                started quickly</p>
+            <button onclick="showTemplates()" class="btn btn-primary">
+                <i class="fas fa-layer-group"></i>
+                Browse Templates
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body" style="text-align: center; padding: 2rem;">
+            <div
+                style="width: 4rem; height: 4rem; border-radius: 50%; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem;">
+                <i class="fas fa-code"></i>
+            </div>
+            <h3>Start from Scratch</h3>
+            <p style="color: var(--gray-600); margin-bottom: 1.5rem;">Create a custom workflow with full control over
+                every step</p>
+            <button onclick="showCustomForm()" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Create Custom
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Template Selection (Hidden by default) -->
+<div id="template-section" class="card" style="display: none;">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-layer-group"></i>
+            Choose a Template
+        </h2>
+        <p class="card-subtitle">Select a pre-built template to customize</p>
+    </div>
+    <div class="card-body">
+        <div class="grid grid-cols-3">
+            <div class="template-card" onclick="selectTemplate('email-automation')">
+                <div class="template-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h3>Email Automation</h3>
+                <p>Automated email campaigns, notifications, and responses</p>
+                <div class="template-features">
+                    <span class="feature-tag">Gmail Integration</span>
+                    <span class="feature-tag">Scheduling</span>
+                    <span class="feature-tag">Templates</span>
+                </div>
+            </div>
+
+            <div class="template-card" onclick="selectTemplate('data-processing')">
+                <div class="template-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3>Data Processing</h3>
+                <p>ETL pipelines, data transformation, and analysis workflows</p>
+                <div class="template-features">
+                    <span class="feature-tag">CSV/JSON</span>
+                    <span class="feature-tag">Filtering</span>
+                    <span class="feature-tag">Validation</span>
+                </div>
+            </div>
+
+            <div class="template-card" onclick="selectTemplate('api-integration')">
+                <div class="template-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <i class="fas fa-plug"></i>
+                </div>
+                <h3>API Integration</h3>
+                <p>Connect and sync data between different services and APIs</p>
+                <div class="template-features">
+                    <span class="feature-tag">REST APIs</span>
+                    <span class="feature-tag">Webhooks</span>
+                    <span class="feature-tag">Authentication</span>
+                </div>
+            </div>
+
+            <div class="template-card" onclick="selectTemplate('notification-system')">
+                <div class="template-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3>Notification System</h3>
+                <p>Multi-channel notifications via email, SMS, and chat</p>
+                <div class="template-features">
+                    <span class="feature-tag">Multi-channel</span>
+                    <span class="feature-tag">Conditions</span>
+                    <span class="feature-tag">Escalation</span>
+                </div>
+            </div>
+
+            <div class="template-card" onclick="selectTemplate('file-processing')">
+                <div class="template-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>File Processing</h3>
+                <p>Automated file handling, conversion, and organization</p>
+                <div class="template-features">
+                    <span class="feature-tag">File Upload</span>
+                    <span class="feature-tag">Conversion</span>
+                    <span class="feature-tag">Storage</span>
+                </div>
+            </div>
+
+            <div class="template-card" onclick="selectTemplate('monitoring-alerts')">
+                <div class="template-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Monitoring & Alerts</h3>
+                <p>System monitoring, health checks, and automated alerts</p>
+                <div class="template-features">
+                    <span class="feature-tag">Health Checks</span>
+                    <span class="feature-tag">Metrics</span>
+                    <span class="feature-tag">Alerting</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Workflow Form (Hidden by default) -->
+<div id="custom-form-section" class="card" style="display: none;">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-cog"></i>
+            Workflow Configuration
+        </h2>
+        <p class="card-subtitle">Configure your custom workflow settings</p>
+    </div>
+    <div class="card-body">
+        <form id="workflow-form" onsubmit="createWorkflow(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="workflow-name">Workflow Name *</label>
+                    <input type="text" id="workflow-name" name="name" required placeholder="Enter workflow name"
+                        class="form-control">
+                    <small class="form-help">Choose a descriptive name for your workflow</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="workflow-description">Description</label>
+                    <textarea id="workflow-description" name="description"
+                        placeholder="Describe what this workflow does" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="workflow-category">Category</label>
+                    <select id="workflow-category" name="category" class="form-control">
+                        <option value="">Select category</option>
+                        <option value="automation">Automation</option>
+                        <option value="integration">Integration</option>
+                        <option value="notification">Notification</option>
+                        <option value="data-processing">Data Processing</option>
+                        <option value="monitoring">Monitoring</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="workflow-trigger">Trigger Type</label>
+                    <select id="workflow-trigger" name="trigger_type" class="form-control">
+                        <option value="manual">Manual Trigger</option>
+                        <option value="webhook">Webhook</option>
+                        <option value="schedule">Scheduled</option>
+                        <option value="file-upload">File Upload</option>
+                        <option value="email">Email Received</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Advanced Settings -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-sliders-h"></i>
+                    Advanced Settings
+                </h3>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="workflow-active" name="is_active" checked>
+                            <span class="checkmark"></span>
+                            Activate workflow immediately
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="workflow-logging" name="enable_logging" checked>
+                            <span class="checkmark"></span>
+                            Enable detailed logging
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="workflow-timeout">Execution Timeout (seconds)</label>
+                        <input type="number" id="workflow-timeout" name="timeout" value="300" min="30" max="3600"
+                            class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="workflow-retry">Retry Attempts</label>
+                        <input type="number" id="workflow-retry" name="max_retries" value="3" min="0" max="10"
+                            class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" onclick="hideCustomForm()" class="btn btn-outline">
+                    <i class="fas fa-arrow-left"></i>
+                    Back
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Create Workflow
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .template-card {
+        background: white;
+        border: 2px solid var(--gray-200);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .template-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
+
+    .template-card.selected {
+        border-color: var(--primary-color);
+        background: var(--primary-50);
+    }
+
+    .template-icon {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .template-card h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--gray-900);
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .template-card p {
+        color: var(--gray-600);
+        font-size: 0.875rem;
+        margin: 0 0 1rem 0;
+        line-height: 1.4;
+    }
+
+    .template-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .feature-tag {
+        background: var(--gray-100);
+        color: var(--gray-700);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--border-radius);
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 1.5rem 0;
+        color: var(--gray-800);
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        margin: 0;
+    }
+</style>
+
+<script>
+    let selectedTemplate = null;
+
+    function showTemplates() {
+        document.getElementById('template-section').style.display = 'block';
+        document.getElementById('custom-form-section').style.display = 'none';
+    }
+
+    function showCustomForm() {
+        document.getElementById('custom-form-section').style.display = 'block';
+        document.getElementById('template-section').style.display = 'none';
+    }
+
+    function hideCustomForm() {
+        document.getElementById('custom-form-section').style.display = 'none';
+    }
+
+    function selectTemplate(templateId) {
+        selectedTemplate = templateId;
+
+        // Remove previous selection
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+
+        // Add selection to clicked card
+        event.currentTarget.classList.add('selected');
+
+        // Show confirmation
+        setTimeout(() => {
+            if (confirm('Create workflow from this template?')) {
+                createFromTemplate(templateId);
+            }
+        }, 300);
+    }
+
+    async function createFromTemplate(templateId) {
+        try {
+            AutomationPlatform.showLoading('Creating workflow from template...');
+
+            const response = await fetch('/api/v1/workflows/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': AutomationPlatform.getCSRFToken()
+                },
+                body: JSON.stringify({
+                    template: templateId,
+                    name: `${templateId.replace('-', ' ')} Workflow`,
+                    description: `Workflow created from ${templateId} template`
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                AutomationPlatform.notify('Workflow created successfully!', 'success');
+                window.location.href = `/workflow/${data.id}/builder/`;
+            } else {
+                throw new Error(data.error || 'Failed to create workflow');
+            }
+        } catch (error) {
+            console.error('Error creating workflow:', error);
+            AutomationPlatform.notify('Error creating workflow: ' + error.message, 'error');
+        } finally {
+            AutomationPlatform.hideLoading();
+        }
+    }
+
+    async function createWorkflow(event) {
+        event.preventDefault();
+
+        try {
+            AutomationPlatform.showLoading('Creating workflow...');
+
+            const formData = new FormData(event.target);
+            const workflowData = Object.fromEntries(formData.entries());
+
+            // Convert checkbox values
+            workflowData.is_active = formData.has('is_active');
+            workflowData.enable_logging = formData.has('enable_logging');
+
+            const response = await fetch('/api/v1/workflows/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': AutomationPlatform.getCSRFToken()
+                },
+                body: JSON.stringify(workflowData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                AutomationPlatform.notify('Workflow created successfully!', 'success');
+                window.location.href = `/workflow/${data.id}/builder/`;
+            } else {
+                throw new Error(data.error || 'Failed to create workflow');
+            }
+        } catch (error) {
+            console.error('Error creating workflow:', error);
+            AutomationPlatform.notify('Error creating workflow: ' + error.message, 'error');
+        } finally {
+            AutomationPlatform.hideLoading();
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,285 @@
+{% load static %}
+<style>
+    /* SIDEBAR (Style-6 Liquid Physics) */
+    .sidebar-dock {
+        width: 260px;
+        height: 100vh;
+        background: #FFFFFF;
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        padding: 24px 20px;
+        box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.04);
+        font-family: 'Outfit', sans-serif;
+    }
+
+    /* Brand Header */
+    .brand-hud {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin-bottom: 40px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #111827;
+        padding-left: 12px;
+        opacity: 0;
+        animation: fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.05s forwards;
+    }
+
+    .brand-hud i {
+        background: linear-gradient(135deg, #7C5CFF, #FF6A3D);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 24px;
+    }
+
+    .sidebar-dock nav {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        /* Slightly tighter gap */
+    }
+
+    /* NAV ITEM (Liquid Pill) */
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 20px;
+        border-radius: 999px;
+        /* Pill Shape */
+        text-decoration: none;
+        font-weight: 500;
+        color: #6B7280;
+        font-size: 14px;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+
+        /* Load Animation: Slide Right 6px */
+        opacity: 0;
+        transform: translateX(-6px);
+        animation: loadSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes loadSlideIn {
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Stagger Delays */
+    .nav-link:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .nav-link:nth-child(2) {
+        animation-delay: 0.15s;
+    }
+
+    .nav-link:nth-child(3) {
+        animation-delay: 0.20s;
+    }
+
+    .nav-link:nth-child(4) {
+        animation-delay: 0.25s;
+    }
+
+    .nav-link:nth-child(5) {
+        animation-delay: 0.30s;
+    }
+
+    .nav-link:nth-child(6) {
+        animation-delay: 0.35s;
+    }
+
+    .nav-link:nth-child(7) {
+        animation-delay: 0.40s;
+    }
+
+    /* LIQUID FILL BACKGROUND (Active) */
+    .nav-link::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, #7C5CFF, #FF6A3D);
+        /* Purple -> Orange */
+        transform: scaleX(0);
+        transform-origin: left;
+        z-index: -1;
+        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        /* 500ms Flow */
+    }
+
+    /* Subtle Wave Distortion (Pseudo-element overlay) */
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+        z-index: -1;
+        opacity: 0.5;
+    }
+
+    /* ACTIVE STATE */
+    .nav-link.active {
+        color: #FFFFFF !important;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(124, 92, 255, 0.25);
+        /* Glow */
+    }
+
+    /* Trigger Liquid Fill */
+    .nav-link.active::before {
+        transform: scaleX(1);
+    }
+
+    /* Trigger Wave on Active Load */
+    .nav-link.active::after {
+        animation: waveFlow 1s linear infinite;
+        /* Optional: Keep it static or subtle? Request asked for "wave distortion". I'll skip continuous to allow clean exit, relying on the gradient fill itself. */
+        /* Actually, let's make the fill nice and clean first. The gradient does the work. */
+    }
+
+    /* HOVER STATE (Inactive) */
+    .nav-link:not(.active):hover {
+        color: #4B5563;
+        background: rgba(0, 0, 0, 0.02);
+        transform: scale(1.03);
+        /* Subtle Scale */
+    }
+
+    .nav-link:not(.active):hover i {
+        color: #7C5CFF;
+        transform: scale(1.1);
+    }
+
+    /* Icon Styling */
+    .nav-link i {
+        font-size: 18px;
+        width: 24px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .nav-link.active i {
+        color: #FFFFFF !important;
+    }
+
+    /* USER PROFILE */
+    .user-hud {
+        margin-top: auto;
+        background: #FFFFFF;
+        /* Clean white */
+        border-radius: 14px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        /* border: 1px solid rgba(0, 0, 0, 0.04); Removed border for cleaner look */
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0;
+        animation: fadeUp 0.5s ease-out 0.45s forwards;
+    }
+
+    .user-hud:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #F3F4F6, #E5E7EB);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #4B5563;
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<aside class="sidebar-dock">
+    <div class="brand-hud">
+        <img src="{% static 'images/flowzen_logo.png' %}" alt="Flowzen"
+            style="width: 32px; height: 32px; object-fit: contain;">
+        <span>FLOWZEN</span>
+    </div>
+
+    <nav>
+        <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+            <i class="fas fa-th-large"></i> <span>Dashboard</span>
+        </a>
+        <a href="/workflows/"
+            class="nav-link {% if '/workflows/' in request.path and '/builder' not in request.path %}active{% endif %}">
+            <i class="fas fa-project-diagram"></i> <span>Workflows</span>
+        </a>
+        <a href="/templates/" class="nav-link {% if '/templates/' in request.path %}active{% endif %}">
+            <i class="fas fa-cubes"></i> <span>Templates</span>
+        </a>
+        <a href="/executions/" class="nav-link {% if '/executions/' in request.path %}active{% endif %}">
+            <i class="fas fa-bolt"></i> <span>Executions</span>
+        </a>
+        <a href="/credentials/" class="nav-link {% if '/credentials/' in request.path %}active{% endif %}">
+            <i class="fas fa-key"></i> <span>Credentials</span>
+        </a>
+
+        <a href="/settings/" class="nav-link {% if '/settings/' in request.path %}active{% endif %}">
+            <i class="fas fa-sliders-h"></i> <span>Settings</span>
+        </a>
+
+    </nav>
+
+    <div class="user-hud" onclick="window.location.href='/settings/'">
+        <div class="user-avatar" style="overflow: hidden; display: flex; align-items: center; justify-content: center;">
+            {% if request.user.profile.avatar %}
+            <img src="{{ request.user.profile.avatar.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+            {{ request.user.username|default:"A"|slice:":1"|upper }}
+            {% endif %}
+        </div>
+        <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 2px;">
+            <div style="font-weight: 700; font-size: 13px; color: #111827;">
+                {{ request.user.username|default:"User" }}
+            </div>
+            <div style="font-size: 11px; color: #6B7280; font-weight: 500;">
+                Personal Workspace
+            </div>
+        </div>
+        <ion-icon name="chevron-forward-outline" style="color: #9CA3AF; transition: transform 0.2s ease;"></ion-icon>
+    </div>
+
+    <script>
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user_role');
+            window.location.href = '/login/';
+        }
+    </script>
+</aside>

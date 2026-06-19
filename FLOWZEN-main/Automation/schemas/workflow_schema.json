@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow Schema",
+  "description": "JSON schema for workflow definitions in the n8n-like automation platform",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the workflow"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Human-readable name for the workflow"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description of the workflow"
+    },
+    "active": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the workflow is active and can be executed"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/node"
+      },
+      "description": "Array of nodes in the workflow"
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/edge"
+      },
+      "description": "Array of connections between nodes"
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "max_retries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 0
+        },
+        "retry_delay": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600,
+          "default": 5
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400,
+          "default": 300
+        }
+      }
+    }
+  },
+  "required": ["name", "nodes"],
+  "definitions": {
+    "node": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the node within the workflow"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["trigger", "action", "utility"],
+          "description": "Type of node"
+        },
+        "action_type": {
+          "type": "string",
+          "description": "Specific action type (e.g., 'http_request', 'email_sender')"
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable label for the node"
+        },
+        "position": {
+          "type": "object",
+          "properties": {
+            "x": {"type": "number"},
+            "y": {"type": "number"}
+          },
+          "required": ["x", "y"]
+        },
+        "config": {
+          "type": "object",
+          "description": "Node-specific configuration parameters"
+        }
+      },
+      "required": ["id", "type", "action_type", "label"]
+    },
+    "edge": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the edge"
+        },
+        "source": {
+          "type": "string",
+          "description": "ID of the source node"
+        },
+        "target": {
+          "type": "string",
+          "description": "ID of the target node"
+        },
+        "sourceHandle": {
+          "type": "string",
+          "description": "Source handle identifier"
+        },
+        "targetHandle": {
+          "type": "string",
+          "description": "Target handle identifier"
+        }
+      },
+      "required": ["id", "source", "target"]
+    }
+  }
+}

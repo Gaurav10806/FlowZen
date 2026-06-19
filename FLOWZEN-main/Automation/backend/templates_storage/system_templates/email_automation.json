@@ -1,0 +1,30 @@
+{
+    "name": "Email Automation",
+    "description": "Automated email sending with Gmail integration",
+    "category": "communication",
+    "difficulty": "intermediate",
+    "nodes": [
+        {
+            "id": "schedule",
+            "type": "schedule",
+            "position": {
+                "x": 100,
+                "y": 200
+            }
+        },
+        {
+            "id": "email",
+            "type": "email",
+            "position": {
+                "x": 300,
+                "y": 200
+            }
+        }
+    ],
+    "edges": [
+        {
+            "source": "schedule",
+            "target": "email"
+        }
+    ]
+}

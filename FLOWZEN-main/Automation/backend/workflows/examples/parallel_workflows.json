@@ -1,0 +1,628 @@
+{
+  "parallel_data_processing": {
+    "name": "Parallel Data Processing Pipeline",
+    "description": "Process uploaded data through multiple parallel transformations",
+    "trigger": {
+      "type": "webhook",
+      "params": {
+        "path": "/process-data"
+      }
+    },
+    "nodes": {
+      "data_fork": {
+        "type": "parallel_fork",
+        "params": {
+          "branch_count": 3,
+          "branch_names": ["validate", "transform", "backup"],
+          "execution_mode": "async",
+          "timeout_ms": 30000,
+          "failure_strategy": "continue_on_error"
+        }
+      },
+      "validate_data": {
+        "type": "http_request",
+        "params": {
+          "url": "https://api.validator.com/validate",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{{input}}"
+        }
+      },
+      "transform_data": {
+        "type": "code",
+        "params": {
+          "language": "python",
+          "code": "# Transform and clean data\nresult = {'transformed': True, 'data': input_data}\nreturn result"
+        }
+      },
+      "backup_data": {
+        "type": "http_request",
+        "params": {
+          "url": "https://backup.service.com/store",
+          "method": "POST",
+          "headers": {
+            "Authorization": "Bearer {{credentials.backup_token}}"
+          },
+          "body": "{{input}}"
+        }
+      },
+      "data_merge": {
+        "type": "parallel_merge",
+        "params": {
+          "merge_strategy": "all",
+          "merge_mode": "object",
+          "timeout_ms": 60000,
+          "failure_strategy": "partial_success",
+          "required_branches": ["validate", "transform"]
+        }
+      },
+      "final_processing": {
+        "type": "http_request",
+        "params": {
+          "url": "https://api.final.com/process",
+          "method": "POST",
+          "body": "{{merge_result.merged_data}}"
+        }
+      }
+    },
+    "edges": [
+      {
+        "from": "webhook",
+        "to": "data_fork"
+      },
+      {
+        "from": "data_fork",
+        "to": "validate_data",
+        "condition": "validate"
+      },
+      {
+        "from": "data_fork",
+        "to": "transform_data",
+        "condition": "transform"
+      },
+      {
+        "from": "data_fork",
+        "to": "backup_data",
+        "condition": "backup"
+      },
+      {
+        "from": "validate_data",
+        "to": "data_merge",
+        "condition": "validate"
+      },
+      {
+        "from": "transform_data",
+        "to": "data_merge",
+        "condition": "transform"
+      },
+      {
+        "from": "backup_data",
+        "to": "data_merge",
+        "condition": "backup"
+      },
+      {
+        "from": "data_merge",
+        "to": "final_processing"
+      }
+    ]
+  },
+
+  "multi_channel_notification": {
+    "name": "Multi-Channel Notification System",
+    "description": "Send notifications through multiple channels simultaneously",
+    "trigger": {
+      "type": "webhook",
+      "params": {
+        "path": "/notify"
+      }
+    },
+    "nodes": {
+      "notification_fork": {
+        "type": "parallel_fork",
+        "params": {
+          "branch_count": 4,
+          "branch_names": ["email", "sms", "slack", "push"],
+          "execution_mode": "async",
+          "failure_strategy": "continue_on_error"
+        }
+      },
+      "send_email": {
+        "type": "email",
+        "params": {
+          "to": "{{input.recipient.email}}",
+          "subject": "{{input.subject}}",
+          "body": "{{input.message}}",
+          "template": "notification"
+        }
+      },
+      "send_sms": {
+        "type": "http_request",
+        "params": {
+          "url": "https://sms.api.com/send",
+          "method": "POST",
+          "headers": {
+            "Authorization": "Bearer {{credentials.sms_token}}"
+          },
+          "body": {
+            "to": "{{input.recipient.phone}}",
+            "message": "{{input.message}}"
+          }
+        }
+      },
+      "send_slack": {
+        "type": "http_request",
+        "params": {
+          "url": "{{credentials.slack_webhook_url}}",
+          "method": "POST",
+          "body": {
+            "channel": "{{input.recipient.slack_channel}}",
+            "text": "{{input.message}}",
+            "username": "NotificationBot"
+          }
+        }
+      },
+      "send_push": {
+        "type": "http_request",
+        "params": {
+          "url": "https://push.service.com/send",
+          "method": "POST",
+          "headers": {
+            "Authorization": "Bearer {{credentials.push_token}}"
+          },
+          "body": {
+            "device_id": "{{input.recipient.device_id}}",
+            "title": "{{input.subject}}",
+            "body": "{{input.message}}"
+          }
+        }
+      },
+      "notification_merge": {
+        "type": "parallel_merge",
+        "params": {
+          "merge_strategy": "all",
+          "merge_mode": "array",
+          "timeout_ms": 30000,
+          "failure_strategy": "ignore_failures"
+        }
+      },
+      "log_delivery_results": {
+        "type": "code",
+        "params": {
+          "language": "python",
+          "code": "# Log notification delivery results\nresults = merge_result['branch_results']\ndelivered = [k for k, v in results.items() if v.get('status') == 'success']\nfailed = [k for k, v in results.items() if v.get('status') != 'success']\nreturn {'delivered_channels': delivered, 'failed_channels': failed}"
+        }
+      }
+    },
+    "edges": [
+      {
+        "from": "webhook",
+        "to": "notification_fork"
+      },
+      {
+        "from": "notification_fork",
+        "to": "send_email",
+        "condition": "email"
+      },
+      {
+        "from": "notification_fork",
+        "to": "send_sms",
+        "condition": "sms"
+      },
+      {
+        "from": "notification_fork",
+        "to": "send_slack",
+        "condition": "slack"
+      },
+      {
+        "from": "notification_fork",
+        "to": "send_push",
+        "condition": "push"
+      },
+      {
+        "from": "send_email",
+        "to": "notification_merge",
+        "condition": "email"
+      },
+      {
+        "from": "send_sms",
+        "to": "notification_merge",
+        "condition": "sms"
+      },
+      {
+        "from": "send_slack",
+        "to": "notification_merge",
+        "condition": "slack"
+      },
+      {
+        "from": "send_push",
+        "to": "notification_merge",
+        "condition": "push"
+      },
+      {
+        "from": "notification_merge",
+        "to": "log_delivery_results"
+      }
+    ]
+  },
+
+  "ab_test_execution": {
+    "name": "A/B Test Parallel Execution",
+    "description": "Run A/B test variants in parallel and select winner",
+    "trigger": {
+      "type": "webhook",
+      "params": {
+        "path": "/ab-test"
+      }
+    },
+    "nodes": {
+      "test_fork": {
+        "type": "parallel_fork",
+        "params": {
+          "branch_count": 3,
+          "branch_names": ["variant_a", "variant_b", "control"],
+          "execution_mode": "async",
+          "timeout_ms": 10000,
+          "failure_strategy": "continue_on_error"
+        }
+      },
+      "run_variant_a": {
+        "type": "http_request",
+        "params": {
+          "url": "https://api.test.com/variant-a",
+          "method": "POST",
+          "body": "{{input}}",
+          "timeout": 5000
+        }
+      },
+      "run_variant_b": {
+        "type": "http_request",
+        "params": {
+          "url": "https://api.test.com/variant-b",
+          "method": "POST",
+          "body": "{{input}}",
+          "timeout": 5000
+        }
+      },
+      "run_control": {
+        "type": "http_request",
+        "params": {
+          "url": "https://api.test.com/control",
+          "method": "POST",
+          "body": "{{input}}",
+          "timeout": 5000
+        }
+      },
+      "test_merge": {
+        "type": "parallel_merge",
+        "params": {
+          "merge_strategy": "first_success",
+          "merge_mode": "object",
+          "timeout_ms": 8000,
+          "failure_strategy": "partial_success"
+        }
+      },
+      "select_winner": {
+        "type": "code",
+        "params": {
+          "language": "python",
+          "code": "# Select best performing variant based on response time and success\nbranch_results = merge_result['branch_results']\nwinner = None\nbest_time = float('inf')\n\nfor branch_id, result in branch_results.items():\n    if result.get('status') == 'success':\n        exec_time = result.get('execution_time_ms', float('inf'))\n        if exec_time < best_time:\n            best_time = exec_time\n            winner = branch_id\n\nreturn {'winner': winner, 'execution_time_ms': best_time}"
+        }
+      },
+      "log_test_results": {
+        "type": "http_request",
+        "params": {
+          "url": "https://analytics.service.com/ab-test-result",
+          "method": "POST",
+          "body": {
+            "test_id": "{{input.test_id}}",
+            "winner": "{{select_winner.winner}}",
+            "results": "{{merge_result}}"
+          }
+        }
+      }
+    },
+    "edges": [
+      {
+        "from": "webhook",
+        "to": "test_fork"
+      },
+      {
+        "from": "test_fork",
+        "to": "run_variant_a",
+        "condition": "variant_a"
+      },
+      {
+        "from": "test_fork",
+        "to": "run_variant_b",
+        "condition": "variant_b"
+      },
+      {
+        "from": "test_fork",
+        "to": "run_control",
+        "condition": "control"
+      },
+      {
+        "from": "run_variant_a",
+        "to": "test_merge",
+        "condition": "variant_a"
+      },
+      {
+        "from": "run_variant_b",
+        "to": "test_merge",
+        "condition": "variant_b"
+      },
+      {
+        "from": "run_control",
+        "to": "test_merge",
+        "condition": "control"
+      },
+      {
+        "from": "test_merge",
+        "to": "select_winner"
+      },
+      {
+        "from": "select_winner",
+        "to": "log_test_results"
+      }
+    ]
+  },
+
+  "parallel_api_aggregation": {
+    "name": "Parallel API Data Aggregation",
+    "description": "Fetch data from multiple APIs in parallel and aggregate results",
+    "trigger": {
+      "type": "webhook",
+      "params": {
+        "path": "/aggregate-data"
+      }
+    },
+    "nodes": {
+      "api_fork": {
+        "type": "parallel_fork",
+        "params": {
+          "branch_count": 4,
+          "branch_names": ["users", "orders", "products", "analytics"],
+          "execution_mode": "async",
+          "timeout_ms": 15000
+        }
+      },
+      "fetch_users": {
+        "type": "http_request",
+        "params": {
+          "url": "https://api.service.com/users",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{credentials.api_token}}"
+          },
+          "query": {
+            "limit": "{{input.limit}}",
+            "offset": "{{input.offset}}"
+          }
+        }
+      },
+      "fetch_orders": {
+        "type": "http_request",
+        "params": {
+          "url": "https://api.service.com/orders",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{credentials.api_token}}"
+          },
+          "query": {
+            "date_from": "{{input.date_from}}",
+            "date_to": "{{input.date_to}}"
+          }
+        }
+      },
+      "fetch_products": {
+        "type": "http_request",
+        "params": {
+          "url": "https://api.service.com/products",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{credentials.api_token}}"
+          },
+          "query": {
+            "category": "{{input.category}}"
+          }
+        }
+      },
+      "fetch_analytics": {
+        "type": "http_request",
+        "params": {
+          "url": "https://analytics.service.com/metrics",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{credentials.analytics_token}}"
+          },
+          "query": {
+            "period": "{{input.period}}"
+          }
+        }
+      },
+      "data_merge": {
+        "type": "parallel_merge",
+        "params": {
+          "merge_strategy": "all",
+          "merge_mode": "object",
+          "timeout_ms": 20000,
+          "failure_strategy": "partial_success"
+        }
+      },
+      "aggregate_results": {
+        "type": "code",
+        "params": {
+          "language": "python",
+          "code": "# Aggregate data from all API responses\nmerged_data = merge_result['merged_data']\n\naggregated = {\n    'total_users': len(merged_data.get('users', {}).get('data', [])),\n    'total_orders': len(merged_data.get('orders', {}).get('data', [])),\n    'total_products': len(merged_data.get('products', {}).get('data', [])),\n    'analytics': merged_data.get('analytics', {}),\n    'timestamp': datetime.utcnow().isoformat()\n}\n\nreturn aggregated"
+        }
+      },
+      "store_results": {
+        "type": "http_request",
+        "params": {
+          "url": "https://warehouse.service.com/store",
+          "method": "POST",
+          "body": "{{aggregate_results}}"
+        }
+      }
+    },
+    "edges": [
+      {
+        "from": "webhook",
+        "to": "api_fork"
+      },
+      {
+        "from": "api_fork",
+        "to": "fetch_users",
+        "condition": "users"
+      },
+      {
+        "from": "api_fork",
+        "to": "fetch_orders",
+        "condition": "orders"
+      },
+      {
+        "from": "api_fork",
+        "to": "fetch_products",
+        "condition": "products"
+      },
+      {
+        "from": "api_fork",
+        "to": "fetch_analytics",
+        "condition": "analytics"
+      },
+      {
+        "from": "fetch_users",
+        "to": "data_merge",
+        "condition": "users"
+      },
+      {
+        "from": "fetch_orders",
+        "to": "data_merge",
+        "condition": "orders"
+      },
+      {
+        "from": "fetch_products",
+        "to": "data_merge",
+        "condition": "products"
+      },
+      {
+        "from": "fetch_analytics",
+        "to": "data_merge",
+        "condition": "analytics"
+      },
+      {
+        "from": "data_merge",
+        "to": "aggregate_results"
+      },
+      {
+        "from": "aggregate_results",
+        "to": "store_results"
+      }
+    ]
+  },
+
+  "mixed_linear_parallel": {
+    "name": "Mixed Linear and Parallel Workflow",
+    "description": "Demonstrates combination of linear and parallel execution patterns",
+    "trigger": {
+      "type": "webhook",
+      "params": {
+        "path": "/mixed-workflow"
+      }
+    },
+    "nodes": {
+      "initial_processing": {
+        "type": "code",
+        "params": {
+          "language": "python",
+          "code": "# Initial data preparation\nprocessed_data = {'prepared': True, 'timestamp': datetime.utcnow().isoformat()}\nreturn processed_data"
+        }
+      },
+      "parallel_section": {
+        "type": "parallel_fork",
+        "params": {
+          "branch_count": 2,
+          "branch_names": ["heavy_compute", "light_tasks"],
+          "execution_mode": "async"
+        }
+      },
+      "heavy_computation": {
+        "type": "code",
+        "params": {
+          "language": "python",
+          "code": "# Simulate heavy computation\nimport time\ntime.sleep(2)  # Simulate 2 second processing\nresult = {'computation_result': 'heavy_work_done'}\nreturn result"
+        }
+      },
+      "light_tasks": {
+        "type": "http_request",
+        "params": {
+          "url": "https://api.service.com/quick-task",
+          "method": "POST",
+          "body": "{{input}}"
+        }
+      },
+      "parallel_merge": {
+        "type": "parallel_merge",
+        "params": {
+          "merge_strategy": "all",
+          "merge_mode": "flatten"
+        }
+      },
+      "final_processing": {
+        "type": "code",
+        "params": {
+          "language": "python",
+          "code": "# Final processing after parallel section\nfinal_result = {'status': 'completed', 'merged_data': merge_result}\nreturn final_result"
+        }
+      },
+      "cleanup": {
+        "type": "http_request",
+        "params": {
+          "url": "https://api.service.com/cleanup",
+          "method": "POST",
+          "body": "{{final_processing}}"
+        }
+      }
+    },
+    "edges": [
+      {
+        "from": "webhook",
+        "to": "initial_processing"
+      },
+      {
+        "from": "initial_processing",
+        "to": "parallel_section"
+      },
+      {
+        "from": "parallel_section",
+        "to": "heavy_computation",
+        "condition": "heavy_compute"
+      },
+      {
+        "from": "parallel_section",
+        "to": "light_tasks",
+        "condition": "light_tasks"
+      },
+      {
+        "from": "heavy_computation",
+        "to": "parallel_merge",
+        "condition": "heavy_compute"
+      },
+      {
+        "from": "light_tasks",
+        "to": "parallel_merge",
+        "condition": "light_tasks"
+      },
+      {
+        "from": "parallel_merge",
+        "to": "final_processing"
+      },
+      {
+        "from": "final_processing",
+        "to": "cleanup"
+      }
+    ]
+  }
+}
