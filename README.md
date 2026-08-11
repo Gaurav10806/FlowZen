@@ -15,34 +15,6 @@ FlowZen is a complete system for orchestrating, scheduling, and automating opera
 
 ---
 
-## 📑 Table of Contents
-
-- [Project Description](#-project-description)
-- [Key Features](#-key-features)
-- [Screenshots](#-screenshots-section)
-- [Demo / Preview](#-demo--preview)
-- [Tech Stack](#-tech-stack)
-- [System Architecture](#-system-architecture)
-- [Folder Structure](#-folder-structure)
-- [Quick Start](#-quick-start)
-- [Installation Guide](#-installation-guide)
-- [Development Setup](#-development-setup)
-- [How to Run the Project](#-how-to-run-the-project)
-- [Deployment Guide](#-deployment-guide)
-- [How to Use FlowZen](#-how-to-use-flowzen)
-- [Example Workflow](#-example-workflow)
-- [API Usage](#-api-usage)
-- [Configuration](#-configuration)
-- [Security Notes](#-security-notes)
-- [Performance Notes](#-performance-notes)
-- [Troubleshooting](#-troubleshooting)
-- [FAQ](#-faq)
-- [Future Improvements](#-future-improvements)
-- [Contributing](#-contributing-section)
-- [License](#-license)
-- [Author](#-author)
-
----
 
 ## 📖 Project Description
 
@@ -157,7 +129,7 @@ This document explains the internal design and development journey of FlowZen in
 🧠 Covers architecture, execution engine, integrations, debugging, and deployment.
 
 📄 **Read the full documentation here:**  
-https://github.com/Ansh972007/FLOWZEN/blob/main/docs/analysis/FlowZen_Combined_Documentation.pdf
+https://github.com/Gaurav10806/FlowZen/blob/main/docs/analysis/FlowZen_Combined_Documentation.pdf
 
 ## 📂 Folder Structure
 
@@ -486,6 +458,6 @@ Distributed under the MIT License. See `LICENSE` for more information. This allo
 ## ✍️ Author
 
 Developed and maintained by the amazing open-source community.  
-**Project Link:** (https://github.com/Ansh972007/FlowZen)  
+**Project Link:** (https://github.com/Gaurav10806/FlowZen)  
 
 *(If you like this project, please consider giving it a ⭐ on GitHub!)*
