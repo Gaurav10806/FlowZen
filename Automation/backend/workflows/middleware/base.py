@@ -49,7 +49,7 @@ class HealthCheckMiddleware(MiddlewareMixin):
     """Provide health check endpoint"""
     
     def process_request(self, request):
-        if request.path == '/health/':
+        if request.path in ['/health/', '/healthz', '/api/v1/health/']:
             try:
                 # Check database connection
                 from django.db import connection

@@ -11,6 +11,8 @@ from ..expression_evaluator import evaluate_expression
 from workflows.ai_tools.tool_registry import ToolRegistry
 
 logger = logging.getLogger(__name__)
+print("IMPORT:", __file__)
+logger.warning(f"LOADED AI AGENT NODE FROM: {__file__}")
 
 @register_node
 class AIAgentNode(ActionNode):
@@ -26,6 +28,8 @@ class AIAgentNode(ActionNode):
         2. Consolidate prompts and conversation history
         3. Standardize execution and output
         """
+        print("ENTERED AIAgentNode.run", __file__)
+        logger.warning(f"RUNNING AIAgentNode FROM: {__file__}")
         try:
             # --- 1. CONFIG & CONTEXT ---
             cfg = self.config or {}
@@ -113,13 +117,22 @@ class AIAgentNode(ActionNode):
             
             all_tools = list(set(config_tools + dynamic_tools))
 
+            logger.warning(f"===== AI NODE CONFIG =====")
+            logger.warning(cfg)
+            logger.warning(f"credential_id = {cfg.get('credential_id')}")
+            logger.warning(f"provider = {cfg.get('provider')}")
+            logger.warning(f"credential = {cfg.get('credential')}")
+            logger.warning(f"brain = {cfg.get('brain')}")
+            logger.warning(f"==========================")
             # --- 3. LLM EXECUTION ---
             credential_id = cfg.get("credential_id")
+            print("CFG =", cfg)
+            print("credential_id =", repr(credential_id))
+
             if not credential_id:
-                return {"success": False, "error": "Brain (Credential) required."}
-
-            logger.info(f"🤖 Agent '{agent_name}' executing with {len(history)} history turns and {len(all_tools)} tools.")
-
+                raise Exception(
+                    f"credential_id missing. cfg={cfg}"
+                )
             # Resolve final context dict
             exec_ctx = {}
             if hasattr(context, 'execution_context'): exec_ctx = context.execution_context

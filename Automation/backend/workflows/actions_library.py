@@ -41,7 +41,7 @@ def openai_chat_action(node, items: List[Dict], context: ActionContext) -> List[
         return [{"json": {"error": "openai package not installed"}, "success": False}]
 
     config = node.config
-    model = config.get("model", "gpt-4o")
+    model = config.get("model") or os.environ.get("AI_MODEL") or os.environ.get("GEMINI_MODEL") or os.environ.get("OLLAMA_MODEL") or "gemini-2.5-flash"
     prompt_template = config.get("prompt", "")
     system_prompt = config.get("system_prompt", "You are a helpful assistant.")
     temperature = float(config.get("temperature", 0.7))

@@ -14,7 +14,8 @@ from .views import (
     WorkflowTemplateViewSet, webhook_trigger, UserProfileView,
     get_execution_engine_info, create_sample_workflow, get_node_types,
     get_node_schemas, get_node_schema,
-    current_user_info, node_health_check, delete_workflow, get_missing_handles
+    current_user_info, node_health_check, delete_workflow, get_missing_handles,
+    get_ai_models
 )
 
 # Import execution history views directly
@@ -88,6 +89,8 @@ urlpatterns = [
     path('api/engine/info/', get_execution_engine_info, name='get_execution_engine_info'),
     path('api/engine/sample/', create_sample_workflow, name='create_sample_workflow'),    # Workflow Management
     path("workflow/<uuid:workflow_id>/delete/", delete_workflow, name="workflow_delete"),
+    path('api/ai/models/', get_ai_models, name='get_ai_models'),
+    path('api/v1/ai/models/', get_ai_models, name='get_ai_models_v1'),
     path("api/nodes/types/", get_node_types, name="get_node_types"),
     path("api/nodes/schemas/", get_node_schemas, name="get_node_schemas"),
     path("api/nodes/schema/<str:node_type>/", get_node_schema, name="get_node_schema"),
@@ -103,8 +106,13 @@ urlpatterns = [
     # Manual Trigger API (MUST be before router to avoid shadowing)
     path('api/workflows/<uuid:workflow_id>/manual/trigger/', trigger_manual_execution, name='trigger_manual_execution'),
 
+    # Credential Test API (Explicit POST handler before router to prevent 405 shadowing)
+    path('api/credentials/test/', CredentialViewSet.as_view({'post': 'test'}), name='test_credential_api'),
+    path('api/v1/credentials/test/', CredentialViewSet.as_view({'post': 'test'}), name='test_credential_api_v1'),
+
     # Core API routes (Router)
     path('api/', include(router.urls)),
+    path('api/v1/', include(router.urls)),
 
     # Trigger Management API
     path('api/triggers/types/', list_trigger_types, name='list_trigger_types'),
@@ -149,6 +157,7 @@ urlpatterns = [
     path('webhooks/<uuid:workflow_id>/', webhook_trigger_view, name='webhook_trigger_enhanced'),
     path('api/webhooks/whatsapp/', handle_whatsapp_webhook, name='webhook_whatsapp'),
     path('api/webhooks/telegram/', telegram_webhook_view, name='telegram-webhook'),
+    path('api/webhooks/telegram', telegram_webhook_view, name='telegram-webhook-noslash'),
     path('api/health/telegram/', telegram_health_view, name='telegram-health'),
     path('api/v1/telegram/register/', telegram_register_view, name='telegram-register'),
 

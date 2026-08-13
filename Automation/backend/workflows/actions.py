@@ -1142,6 +1142,10 @@ ACTION_REGISTRY: Dict[str, Callable] = {
     "schedule_trigger": lambda node, items, context: items,  # Schedule trigger node
     "ai_agent": ai_agent_action,  # Register AI Agent
     "ai-agent": ai_agent_action,  # Hyphenated alias
+    "ai_chat": ai_agent_action,   # AI Chat alias
+    "ai-chat": ai_agent_action,   # Hyphenated AI Chat alias
+    "chat_ai": ai_agent_action,   # Chat AI alias
+    "chat-ai": ai_agent_action,   # Hyphenated Chat AI alias
     # Extended Ecosystem
     "google_sheets": google_sheets_action,
     "google_drive": google_drive_action,
@@ -1173,6 +1177,30 @@ ACTION_REGISTRY: Dict[str, Callable] = {
 
 
 def get_action(action_type: str) -> Optional[Callable]:
-    """Get action function by type."""
-    return ACTION_REGISTRY.get(action_type)
+    """Get action function by type with flexible hyphen/underscore and alias normalization."""
+    if not action_type:
+        return None
+    action = ACTION_REGISTRY.get(action_type)
+    if action:
+        return action
+        
+    normalized_underscore = action_type.replace('-', '_')
+    if normalized_underscore in ACTION_REGISTRY:
+        return ACTION_REGISTRY[normalized_underscore]
+        
+    normalized_hyphen = action_type.replace('_', '-')
+    if normalized_hyphen in ACTION_REGISTRY:
+        return ACTION_REGISTRY[normalized_hyphen]
+        
+    alias_map = {
+        "ai_chat": "ai_agent",
+        "ai-chat": "ai_agent",
+        "chat_ai": "ai_agent",
+        "chat-ai": "ai_agent",
+    }
+    canonical = alias_map.get(action_type) or alias_map.get(normalized_underscore) or alias_map.get(normalized_hyphen)
+    if canonical and canonical in ACTION_REGISTRY:
+        return ACTION_REGISTRY[canonical]
+
+    return None
 

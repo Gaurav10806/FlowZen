@@ -1,4 +1,5 @@
 
+import os
 import logging
 from typing import Dict, Any, List, Union
 
@@ -31,16 +32,28 @@ def select_model(
         default_offline = credential.get('default_model', 'llama3:8b')
         
         # Decide Provider First
-        provider = "offline"
-        
-        # If "Online Only" or specialized profile (future), switch here.
-        # For now, we prefer offline unless explicitly "cloud" or if offline is empty.
-        if not available_offline and openai_key:
-             provider = "online"
-        
-        # Model Selection
-        selected_model = None
-        reason = "heuristic"
+        if cred_provider in ['ai_offline', 'offline', 'ollama']:
+             provider = "offline"
+             if not available_offline and openai_key:
+                  provider = "online"
+             selected_model = None
+             reason = "heuristic"
+        elif cred_provider in ['gemini', 'google'] or has_gemini_key or env_provider in ['gemini', 'google']:
+             provider = "gemini"
+             selected_model = credential.get('model') or credential.get('gemini_model') or getattr(settings, 'GEMINI_MODEL', 'gemini-flash-latest')
+             reason = "gemini_provider"
+             return {
+                 "provider": provider,
+                 "model": selected_model,
+                 "reason": reason,
+                 "profile": profile
+             }
+        else:
+             provider = "offline"
+             if not available_offline and openai_key:
+                  provider = "online"
+             selected_model = None
+             reason = "heuristic"
         
         # --- OFFLINE SELECTION ---
         if provider == "offline":
@@ -96,6 +109,15 @@ def select_model(
 
     except Exception as e:
         logger.error(f"Router Error: {e}")
+        # Respect the credential provider even in error fallback
+        fallback_prov = str(credential.get('provider') or credential.get('type') or '').lower().strip()
+        if fallback_prov in ['gemini', 'google']:
+            return {
+                "provider": "gemini",
+                "model": credential.get('model') or "gemini-flash-latest",
+                "reason": "error_fallback_gemini",
+                "profile": "unknown"
+            }
         return {
             "provider": "offline",
             "model": "llama3:8b",

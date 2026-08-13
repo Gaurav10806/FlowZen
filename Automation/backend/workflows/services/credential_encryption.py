@@ -24,37 +24,48 @@ class CredentialEncryptionService:
     """
     
     def __init__(self):
-        """Initialize encryption service with master key."""
-        master_key = os.environ.get('CREDENTIALS_MASTER_KEY')
-        if not master_key:
-            raise ValueError(
-                "CREDENTIALS_MASTER_KEY environment variable is required. "
-                "Generate one with: python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'"
-            )
+        """Initialize encryption service with master key and legacy fallbacks."""
+        master_key = os.environ.get('CREDENTIALS_MASTER_KEY') or "IeOn9kTi1EaZWc2cgToDvqJq9PjrZe8oi-FOlhDwZaM="
         
-        # If master_key is a Fernet key (base64), use directly
+        self.ciphers = []
+        primary = self._create_cipher(master_key)
+        if primary:
+            self.ciphers.append(primary)
+
+        # Fallback keys to support database entries created before key standardization
+        fallback_keys = [
+            "IeOn9kTi1EaZWc2cgToDvqJq9PjrZe8oi-FOlhDwZaM=",
+            "899ww6owyHqAn2THIH1Nj3TqN-UEZ6AIrxPB3DAZ-b4=",
+        ]
+        for fk in fallback_keys:
+            if fk != master_key:
+                c = self._create_cipher(fk)
+                if c:
+                    self.ciphers.append(c)
+
+        self.cipher = self.ciphers[0] if self.ciphers else Fernet.generate_key()
+
+    def _create_cipher(self, key_str: str) -> Optional[Fernet]:
+        if not key_str:
+            return None
         try:
-            self.cipher = Fernet(master_key.encode())
+            return Fernet(key_str.encode())
         except Exception:
-            # If not, derive a key from it using PBKDF2
-            kdf = PBKDF2HMAC(
-                algorithm=hashes.SHA256(),
-                length=32,
-                salt=b'credential_salt',  # In production, use a random salt stored securely
-                iterations=100000,
-            )
-            key = base64.urlsafe_b64encode(kdf.derive(master_key.encode()))
-            self.cipher = Fernet(key)
-    
+            try:
+                kdf = PBKDF2HMAC(
+                    algorithm=hashes.SHA256(),
+                    length=32,
+                    salt=b'credential_salt',
+                    iterations=100000,
+                )
+                key = base64.urlsafe_b64encode(kdf.derive(key_str.encode()))
+                return Fernet(key)
+            except Exception:
+                return None
+
     def encrypt_credential(self, raw_data: Dict[str, Any]) -> bytes:
         """
         Encrypt credential data.
-        
-        Args:
-            raw_data: Dictionary containing credential secrets
-            
-        Returns:
-            Encrypted bytes
         """
         try:
             json_data = json.dumps(raw_data)
@@ -63,30 +74,29 @@ class CredentialEncryptionService:
         except Exception as e:
             logger.error(f"Failed to encrypt credential: {e}")
             raise ValueError(f"Encryption failed: {e}")
-    
+
     def decrypt_credential(self, encrypted_blob: bytes) -> Dict[str, Any]:
         """
-        Decrypt credential data.
+        Decrypt credential data using primary cipher and legacy fallbacks.
         """
-        try:
-            # Type Safety Check
-            if isinstance(encrypted_blob, str):
-                 encrypted_blob = encrypted_blob.encode()
-            
-            decrypted = self.cipher.decrypt(encrypted_blob)
-            return json.loads(decrypted.decode())
-        except Exception as e:
-            # Log error
-            # logger.error(f"Failed to decrypt credential: {e}")
-            
-            # Fallback for unencrypted JSON bytes
+        if isinstance(encrypted_blob, str):
+            encrypted_blob = encrypted_blob.encode()
+
+        for c in self.ciphers:
             try:
-                val = encrypted_blob if isinstance(encrypted_blob, str) else encrypted_blob.decode()
-                return json.loads(val)
-            except:
-                pass
-                
-            raise ValueError(f"Decryption failed: {e}")
+                decrypted = c.decrypt(encrypted_blob)
+                return json.loads(decrypted.decode())
+            except Exception:
+                continue
+
+        # Fallback for unencrypted JSON bytes
+        try:
+            val = encrypted_blob if isinstance(encrypted_blob, str) else encrypted_blob.decode()
+            return json.loads(val)
+        except Exception:
+            pass
+
+        raise ValueError("Decryption failed across all available ciphers")
     
     def encrypt_credential_str(self, raw_data: Dict[str, Any]) -> str:
         """Encrypt and return as base64 string."""

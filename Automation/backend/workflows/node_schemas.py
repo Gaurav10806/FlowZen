@@ -122,7 +122,8 @@ FULL_NODE_SCHEMAS = {
     "ai_chat": { "category": "AI", "icon": "fas fa-brain", "label": "AI Chat", "description": "Simple LLM Chat",
         "inputs": ["main"], "outputs": ["output"],
         "fields": [
-            { "key": "model", "label": "Model", "type": "select", "options": ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"], "default": "gpt-4o" },
+            { "key": "credential_id", "label": "AI Credential", "type": "credential_select", "credential_type": "ai_provider" },
+            { "key": "model", "label": "Model", "type": "select", "options": [], "default": "" },
             { "key": "system_prompt", "label": "System Prompt", "type": "textarea" },
             { "key": "user_prompt", "label": "User Prompt", "type": "textarea", "required": True },
             { "key": "temperature", "label": "Temperature", "type": "slider", "min": 0, "max": 1, "step": 0.1, "default": 0.7 },

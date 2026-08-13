@@ -189,7 +189,12 @@ def telegram_webhook_view(request):
             logger.warning("Telegram webhook: Unknown bot. Please re-register your bot in the dashboard.")
             return HttpResponse('{"ok": true}', content_type="application/json", status=200)
 
-        logger.info(f"Telegram webhook: Identified bot {credential.name}")
+        logger.info(f"Telegram webhook: Identified bot {credential.name if credential else 'None'}")
+        print(f"=== TELEGRAM WEBHOOK INCOMING ===")
+        print(f"  GET: {dict(request.GET)}")
+        print(f"  Token: {bot_token[:10] if bot_token else 'None'}...")
+        print(f"  Credential: {credential.id if credential else 'NOT FOUND'}")
+        print(f"  Payload: {str(payload)[:100]}")
 
         # 3. Stats & Normalization
         try:
@@ -425,15 +430,17 @@ def telegram_register_view(request):
             "message": "❌ Telegram requires an HTTPS webhook URL. Please use an https:// link (e.g. ngrok)."
         }, status=400)
 
-    # AUTO-FIX: Append token to webhook URL for robust identification if missing
+    # AUTO-FIX: Ensure trailing slash on path and append token if missing
     from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
     parts = list(urlparse(webhook_url))
+    if parts[2] and not parts[2].endswith('/'):
+        parts[2] = parts[2] + '/'
     query = parse_qs(parts[4])
     if 'token' not in query and 'bot_token' not in query:
         query['token'] = [bot_token]
         parts[4] = urlencode(query, doseq=True)
-        webhook_url = urlunparse(parts)
-        print(f">>> [TELEGRAM REGISTER] Upgraded Webhook URL: {webhook_url}")
+    webhook_url = urlunparse(parts)
+    print(f">>> [TELEGRAM REGISTER] Upgraded Webhook URL: {webhook_url}")
 
     try:
         telegram_api = f"https://api.telegram.org/bot{bot_token}/setWebhook"

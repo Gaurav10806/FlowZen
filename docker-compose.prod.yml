@@ -1,63 +1,53 @@
 services:
-  # Database - Must start first
+  # Database Service
   db:
     image: postgres:16-alpine
-    container_name: automation-db
+    container_name: flowzen-db
     restart: always
     environment:
-      POSTGRES_DB: automation_db
-      POSTGRES_USER: automation_user
-      POSTGRES_PASSWORD: automation_pass
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${DATABASE_NAME:-automation_db}
+      POSTGRES_USER: ${DATABASE_USER:-automation_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-automation_pass}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U automation_user -d automation_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USER:-automation_user} -d ${DATABASE_NAME:-automation_db}" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Redis - Must start second
+  # Redis Broker & Cache Service
   redis:
     image: redis:7-alpine
-    container_name: automation-redis
+    container_name: flowzen-redis
     restart: always
-    ports:
-      - "6379:6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Backend - Must start after DB and Redis
+  # Django Application Server (Gunicorn + Uvicorn)
   backend:
-    container_name: automation-backend
+    container_name: flowzen-backend
     build:
       context: .
       dockerfile: Dockerfile
     restart: always
     env_file:
-      - docker/.env
-    volumes:
-      - ./Automation/backend:/app
-      - ./Automation/frontend:/app/frontend
-      - ./Automation/backend/credentials_storage:/app/credentials_storage
-      - ./Automation/backend/templates_storage:/app/templates_storage
-      - media_files:/app/media
-    ports:
-      - "8000:8000"
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=project.settings
-      - DJANGO_DEBUG=True
+      - DJANGO_DEBUG=False
       - REDIS_HOST=redis
       - DATABASE_HOST=db
-      - DATABASE_NAME=automation_db
-      - DATABASE_USER=automation_user
-      - DATABASE_PASSWORD=automation_pass
-      - OAUTHLIB_INSECURE_TRANSPORT=1
-      - CREDENTIALS_MASTER_KEY=${CREDENTIALS_MASTER_KEY:-IeOn9kTi1EaZWc2cgToDvqJq9PjrZe8oi-FOlhDwZaM=}
+    volumes:
+      - media_files:/app/media
+      - static_files:/app/staticfiles
+      - template_storage:/app/templates_storage
+      - credential_storage:/app/credentials_storage
+    ports:
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -68,25 +58,25 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      start_period: 40s
 
-  # Worker - Must start after Backend is healthy
+  # Celery Async Worker
   worker:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: automation-worker
+    container_name: flowzen-worker
     restart: always
-    environment:
-      PYTHONUNBUFFERED: 1
     env_file:
-      - docker/.env
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=project.settings
+      - DJANGO_DEBUG=False
+      - REDIS_HOST=redis
+      - DATABASE_HOST=db
+      - PYTHONUNBUFFERED=1
     command: python start_worker_safe.py
     volumes:
-      - ./Automation/backend:/app
-      - ./Automation/frontend:/app/frontend
       - media_files:/app/media
       - static_files:/app/staticfiles
       - template_storage:/app/templates_storage
@@ -94,22 +84,23 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
-  # Beat - Must start LAST after Worker is running
+  # Celery Beat Periodic Scheduler
   beat:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: automation-beat
+    container_name: flowzen-beat
     restart: always
     env_file:
-      - docker/.env
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=project.settings
+      - DJANGO_DEBUG=False
+      - REDIS_HOST=redis
+      - DATABASE_HOST=db
     command: python start_beat_safe.py
     volumes:
-      - ./Automation/backend:/app
-      - ./Automation/frontend:/app/frontend
       - media_files:/app/media
       - static_files:/app/staticfiles
       - template_storage:/app/templates_storage
@@ -131,4 +122,4 @@ volumes:
 
 networks:
   default:
-    name: automation-network
+    name: flowzen-network

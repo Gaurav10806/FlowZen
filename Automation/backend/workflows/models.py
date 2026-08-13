@@ -427,7 +427,7 @@ class WorkflowExecution(models.Model):
         ]
         constraints = [
             models.CheckConstraint(
-                check=models.Q(priority__gte=1) & models.Q(priority__lte=10),
+                condition=models.Q(priority__gte=1) & models.Q(priority__lte=10),
                 name="valid_priority_range"
             ),
             models.UniqueConstraint(fields=["tenant", "fingerprint"], name="u_exec_tenant_fingerprint"),

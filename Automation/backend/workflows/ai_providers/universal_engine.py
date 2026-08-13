@@ -3,9 +3,11 @@ import time
 import json
 import os
 from typing import Dict, Any, List, Optional, Union
+from django.conf import settings
 
 from workflows.ai_providers.model_router import select_model
 from workflows.ai_providers.ollama_provider import OllamaProvider
+from workflows.ai_providers.gemini_provider import GeminiProvider
 from workflows.ai_services import OpenAIService
 from workflows.models import Credential
 from workflows.services.credential_encryption import CredentialEncryptionService
@@ -34,13 +36,28 @@ class UniversalAIEngine:
             chat_history: List[Dict] = None
             ) -> Dict[str, Any]:
         
+        print("ENTER UniversalAIEngine.run")
         start_time = time.time()
         cache_key = None 
         
+        logger.info("--------------------------------")
+        logger.info(f"UniversalAIEngine.run CALLED")
+        logger.info(f"credential_id: {credential_id}")
+        
         # 1. Load & Decrypt Brain (Credential)
         try:
-            cred = Credential.objects.get(id=credential_id)
-            brain_config = cred.encrypted_data
+            cred = None
+            if credential_id and str(credential_id).lower() != "default":
+                try:
+                    cred = Credential.objects.filter(id=credential_id).first()
+                except Exception as ex:
+                    logger.warning(f"Credential lookup failed for {credential_id}: {ex}")
+                    cred = None
+
+            if not cred:
+                cred = cls.get_or_create_default_credential()
+
+            brain_config = getattr(cred, "encrypted_data", {})
             
             # Robust Decryption Logic
             if isinstance(brain_config, str):
@@ -48,21 +65,43 @@ class UniversalAIEngine:
                      enc = CredentialEncryptionService()
                      brain_config = enc.decrypt_credential_str(brain_config)
                  except Exception as decrypt_err:
-                     # logger.warning(f"Credential decryption failed, attempting raw JSON parse: {decrypt_err}")
                      try:
                          brain_config = json.loads(brain_config)
-                     except:
-                         # If both fail, re-raise original decryption error or a new one
-                         raise ValueError(f"Decryption failed: {decrypt_err}")
+                     except Exception:
+                         brain_config = {}
+            elif not isinstance(brain_config, dict):
+                 brain_config = {}
+
+            if brain_config.get('simulation_mode'):
+                 return {
+                     "output": {
+                         "text": "SIMULATED RESPONSE",
+                         "meta": {"provider": "simulated", "model": "simulated-v1"}
+                     }
+                 }
+
+            if cred:
+                cred_prov = getattr(cred, 'provider', None) or getattr(cred, 'type', None) or 'gemini'
+                brain_config['provider'] = cred_prov
+                brain_config['credential_id'] = str(cred.id)
+                if not brain_config.get('api_key') and cred_prov == 'gemini':
+                    brain_config['api_key'] = os.environ.get("GEMINI_API_KEY", "")
 
         except Exception as e:
             return cls._error_result(f"Credential Error: {str(e)}", "credential_load_failed")
 
         # 2. Add Live Models to Config (if offline)
+        try:
+            ai_provider_env = getattr(settings, "AI_PROVIDER", os.environ.get("AI_PROVIDER", "ollama")).lower()
+        except Exception:
+            ai_provider_env = os.environ.get("AI_PROVIDER", "ollama").lower()
         if cred.type == 'ai_offline':
              try:
-                 live = OllamaProvider().get_installed_models(brain_config.get('base_url'))
-                 if live: brain_config['available_models'] = live
+                 if ai_provider_env == 'gemini':
+                     brain_config['available_models'] = GeminiProvider().get_installed_models()
+                 else:
+                     live = OllamaProvider().get_installed_models(brain_config.get('base_url'))
+                     if live: brain_config['available_models'] = live
              except: pass
 
         # 3. Intelligent Routing
@@ -75,6 +114,24 @@ class UniversalAIEngine:
         
         provider = decision['provider']
         model = decision['model']
+
+        api_key_val = brain_config.get("api_key") or os.environ.get("GEMINI_API_KEY", "")
+        key_snippet = f"api_key starts with {api_key_val[:2]}" if api_key_val else "api_key=None"
+        resolved_cred_id = str(cred.id) if cred else str(credential_id)
+
+        print("=================================")
+        print(f"provider={provider}")
+        print(f"credential_id={resolved_cred_id}")
+        print(f"{key_snippet}")
+        print(f"model={model}")
+        print("=================================")
+
+        logger.info("=================================")
+        logger.info(f"provider={provider}")
+        logger.info(f"credential_id={resolved_cred_id}")
+        logger.info(f"{key_snippet}")
+        logger.info(f"model={model}")
+        logger.info("=================================")
         
         # --- PHASE 13: MULTI-AGENT ORCHESTRATION ---
         agents_cfg = brain_config.get('agents', {})
@@ -110,13 +167,11 @@ class UniversalAIEngine:
              except Exception as e:
                  logger.error(f"Memory Retrieval Failed: {e}")
 
-        # 4. Execution Loop (with Fallback & Self-Healing & Memory)
+        # 4. Execution Loop (with Retry — NO cross-provider fallback)
         result_payload = None
-        fallback_occured = False
         final_provider = provider
         final_model = model
         
-        # --- PHASE 20: SELF-HEALING LOOP & RETRY ---
         # Robust Retry Policy: Default 3 retries
         max_retries = 3 if brain_config.get('retry_enabled', True) else 0
         attempts = 0
@@ -127,13 +182,15 @@ class UniversalAIEngine:
                  # Exponential Backoff
                  if attempts > 1:
                      sleep_time = 2 ** (attempts - 1) # 2s, 4s, 8s
-                     logger.info(f"⏳ Retry {attempts}/{max_retries+1} sleeping for {sleep_time}s")
+                     logger.info(f"Retry {attempts}/{max_retries+1} sleeping for {sleep_time}s")
                      time.sleep(sleep_time)
 
-                 # Attempt Execution
+                 print(f"[ADAPTER DISPATCH] provider={provider}, model={model}, cred_provider={brain_config.get('provider')}")
+
+                 # Always use the SAME provider and model — never silently switch
                  result_payload = cls._execute_adapter(
-                     provider if not fallback_occured else 'online', 
-                     model if not fallback_occured else ('gpt-4o' if response_mode == 'json' else 'gpt-4o-mini'), 
+                     provider, 
+                     model, 
                      user_prompt, 
                      system_prompt, 
                      response_mode, 
@@ -146,28 +203,17 @@ class UniversalAIEngine:
                  break
                  
             except Exception as e:
-                 logger.warning(f"⚠️ Attempt {attempts} failed: {e}")
+                 logger.warning(f"Attempt {attempts} failed: {e}")
                  
                  # Self-Healing for JSON
                  if "json" in str(e).lower() and attempts <= max_retries:
-                      logger.info("🩹 Self-Healing: Retrying with Error Correction...")
+                      logger.info("Self-Healing: Retrying with Error Correction...")
                       user_prompt += f"\n\nPREVIOUS ERROR: {str(e)}\nFIX THE JSON."
                       continue
                  
-                 # Fallback Logic
-                 backup_key = brain_config.get('openai_backup_key')
-                 can_fallback = (provider == 'offline' and backup_key and not fallback_occured)
-                 
-                 if can_fallback:
-                      logger.info("🔄 Initiating Silent Fallback to OpenAI...")
-                      fallback_occured = True
-                      final_provider = 'openai'
-                      final_model = 'gpt-4o' if response_mode == 'json' else 'gpt-4o-mini'
-                      brain_config['api_key'] = backup_key
-                      continue
-                 
-                 # Final Failure
+                 # Final Failure — NO silent fallback to OpenAI
                  if attempts > max_retries:
+                      logger.warning(f"Execution failed after {attempts} attempts. Error: {e}")
                       return cls._error_result(str(e), "execution_failed")
         
         # --- PHASE 11: MEMORY STORAGE ---
@@ -185,8 +231,8 @@ class UniversalAIEngine:
             "provider": final_provider,
             "model_used": final_model,
             "latency_ms": latency,
-            "fallback_used": fallback_occured,
-            "confidence": "medium" if fallback_occured else "high",
+            "fallback_used": False,
+            "confidence": "high",
             "router_reason": decision['reason'],
             "profile": decision['profile']
         }
@@ -213,8 +259,32 @@ class UniversalAIEngine:
 
     @staticmethod
     def _execute_adapter(provider, model, prompt, sys_prompt, mode, tools, config, json_schema=None, images=None, chat_history=None):
-        """Adapter Dispatcher"""
-        if provider == 'offline' or provider == 'ollama':
+        """Adapter Dispatcher — credential provider is the single source of truth."""
+        cred_prov = str(config.get('provider') or config.get('type') or provider).lower().strip()
+        print(f"[_execute_adapter] provider={provider}, cred_prov={cred_prov}, model={model}")
+        if cred_prov in ['gemini', 'google'] or provider == 'gemini':
+             print(f"[_execute_adapter] DISPATCHING TO: GeminiProvider")
+             print(f"[CREDENTIAL DATA BEFORE GEMINI EXECUTE] {config}")
+             res = GeminiProvider().execute(
+                 prompt=prompt,
+                 system_prompt=sys_prompt,
+                 credential_data=config,
+                 model=model,
+                 format='json' if mode == 'json' else None
+             )
+             if not res['success']:
+                 err_msg = res.get('error') or "Gemini execution failed"
+                 if res.get('details'):
+                     err_msg += f" - {res.get('details')}"
+                 raise Exception(err_msg)
+             
+             raw = res['output']
+             return {
+                 "text": raw.get('text', ''),
+                 "json": raw.get('json', {})
+             }
+
+        elif cred_prov in ['ollama', 'ollama_local', 'ai_offline', 'offline'] or provider in ['offline', 'ollama']:
              res = OllamaProvider().execute(
                  prompt=prompt,
                  system_prompt=sys_prompt,
@@ -290,6 +360,57 @@ class UniversalAIEngine:
         
         else:
              raise Exception(f"Unknown provider: {provider}")
+
+    @classmethod
+    def get_or_create_default_credential(cls) -> Credential:
+        """
+        Retrieves or auto-provisions a default Credential for the active system AI provider.
+        Prevents execution failure when environment-driven AI_PROVIDER is used without explicit credential selection.
+        """
+        try:
+            provider = getattr(settings, "AI_PROVIDER", os.environ.get("AI_PROVIDER", "gemini")).lower().strip()
+        except Exception:
+            provider = os.environ.get("AI_PROVIDER", "gemini").lower().strip()
+
+        if provider == "gemini":
+            possible_types = ["gemini", "google"]
+        else:
+            possible_types = ["ollama", "ollama_local", "ai_offline"]
+
+        cred = Credential.objects.filter(type__in=possible_types).order_by("-created_at").first()
+        if cred:
+            return cred
+
+        system_user = None
+        try:
+            from django.contrib.auth.models import User
+            system_user = User.objects.filter(is_superuser=True).first() or User.objects.first()
+            if not system_user:
+                system_user, _ = User.objects.get_or_create(
+                    username="system_ai_user",
+                    defaults={"email": "system@flowzen.local", "is_active": True}
+                )
+        except Exception:
+            pass
+
+        cred_name = f"Default System {provider.capitalize()} Provider"
+        gemini_key = os.environ.get("GEMINI_API_KEY", "")
+
+        cred_data = {
+            "provider": provider,
+            "api_key": gemini_key if provider == "gemini" else "",
+            "model": os.environ.get("GEMINI_MODEL", "gemini-flash-latest") if provider == "gemini" else os.environ.get("OLLAMA_MODEL", "llama3:8b")
+        }
+        cred, _ = Credential.objects.get_or_create(
+            name=cred_name,
+            defaults={
+                "type": provider if provider in ["gemini", "ollama"] else "ai_offline",
+                "provider": provider,
+                "encrypted_data": cred_data,
+                "owner": system_user
+            }
+        )
+        return cred
 
     @classmethod
     def _error_result(cls, msg, code):

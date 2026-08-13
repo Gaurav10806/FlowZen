@@ -2,6 +2,7 @@
 """
 REST API views for workflows, executions, credentials, etc.
 """
+import os
 import json
 import hmac
 import hashlib
@@ -1172,8 +1173,11 @@ class CredentialViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Filter credentials by owner and optional type."""
-        # Fix: Ensure strict filtering by owner
-        queryset = Credential.objects.filter(owner=self.request.user)
+        # Allow system default credentials as well as owner's credentials
+        from django.db.models import Q
+        queryset = Credential.objects.filter(
+            Q(owner=self.request.user) | Q(owner__is_superuser=True) | Q(name__icontains="Default System")
+        )
         
         # Support filtering by type (e.g. ?type=gmail_oauth)
         cred_type = self.request.query_params.get('type')
@@ -1633,7 +1637,7 @@ class CredentialViewSet(viewsets.ModelViewSet):
 
         try:
             # --- TELEGRAM ---
-            if provider == 'telegram_bot':
+            if provider in ['telegram_bot', 'telegram']:
                 token = data.get('bot_token') or data.get('token')
                 if not token: return Response({"success": False, "error": "❌ Missing Bot Token"}, status=400)
                 # FIX 4: Call getMe
@@ -1879,8 +1883,8 @@ class CredentialViewSet(viewsets.ModelViewSet):
             "data": results
         })
     
-    @action(detail=True, methods=['post'])
-    def test(self, request, pk=None):
+    @action(detail=True, methods=['post'], url_path='test_saved')
+    def test_saved_credential(self, request, pk=None):
         """Test credential by attempting to use it."""
         credential = self.get_object()
         
@@ -2967,6 +2971,66 @@ def get_execution_engine_info(request):
             {'error': f'Failed to get engine info: {e}'}, 
             status=500
         )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_ai_models(request):
+    """
+    Returns the active AI provider, default model, and available models.
+    Source of truth for frontend Workflow Builder model dropdowns.
+    """
+    provider = getattr(settings, "AI_PROVIDER", os.environ.get("AI_PROVIDER", "ollama")).lower().strip()
+    available_models = []
+    default_model = ""
+
+    if provider == "gemini":
+        default_model = getattr(settings, "GEMINI_MODEL", os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"))
+        try:
+            from .ai_providers.gemini_provider import GeminiProvider
+            available_models = GeminiProvider().get_installed_models()
+        except Exception as e:
+            logger.warning(f"Failed to fetch Gemini models: {e}")
+            available_models = [default_model]
+
+    elif provider == "ollama":
+        default_model = os.environ.get("OLLAMA_MODEL", "llama3:8b")
+        try:
+            from .ai_providers.ollama_provider import OllamaProvider
+            base_url = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+            available_models = OllamaProvider().get_installed_models(base_url)
+        except Exception as e:
+            logger.warning(f"Failed to fetch Ollama models: {e}")
+            available_models = []
+
+        if not available_models:
+            available_models = [default_model]
+
+    elif provider == "openai":
+        api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+        default_model = os.environ.get("AI_MODEL", "gpt-4o")
+        if api_key:
+            available_models = ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"]
+        else:
+            available_models = [default_model]
+
+    else:
+        default_model = (
+            os.environ.get("AI_MODEL")
+            or os.environ.get("GEMINI_MODEL")
+            or os.environ.get("OLLAMA_MODEL")
+            or "gemini-2.5-flash"
+        )
+        available_models = [default_model]
+
+    if default_model not in available_models and available_models:
+        default_model = available_models[0]
+
+    return JsonResponse({
+        "provider": provider,
+        "default_model": default_model,
+        "available_models": available_models
+    })
 
 
 @api_view(['POST'])

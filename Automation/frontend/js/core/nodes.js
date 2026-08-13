@@ -533,7 +533,7 @@ class NodeManager {
     getDefaultConfig(nodeType) {
         const defaultConfigs = {
             'openai': {
-                model: 'gpt-3.5-turbo',
+                model: '',
                 prompt: '',
                 temperature: 0.7,
                 max_tokens: 1000

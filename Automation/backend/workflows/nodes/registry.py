@@ -44,7 +44,7 @@ class NodeRegistry:
         node_type = node_class.get_node_type()
         
         if node_type in self._nodes:
-            self.logger.warning(f"⚠️ Duplicate node type '{node_type}' detected. Skipping second registration.")
+            self.logger.warning(f"Duplicate node type '{node_type}' detected. Skipping second registration.")
             return
         
         self._nodes[node_type] = node_class
@@ -77,16 +77,28 @@ class NodeRegistry:
         if not self._auto_discovered:
             self.auto_discover()
         
+        # Alias map for backward compatibility and type variations
+        alias_map = {
+            "ai_chat": "ai_agent",
+            "ai-chat": "ai_agent",
+            "chat_ai": "ai_agent",
+            "chat-ai": "ai_agent",
+            "ai-agent": "ai_agent",
+        }
+
         # Normalize node type (hyphen to underscore)
         normalized_type = node_type.replace('-', '_')
         
-        if normalized_type not in self._nodes:
-            # Try original if normalization didn't help (safety)
-            if node_type not in self._nodes:
-                raise KeyError(f"Unknown node type: {node_type}. Available types: {list(self._nodes.keys())}")
-            normalized_type = node_type
+        if normalized_type in self._nodes:
+            return self._nodes[normalized_type]
+        if node_type in self._nodes:
+            return self._nodes[node_type]
+
+        canonical = alias_map.get(node_type) or alias_map.get(normalized_type)
+        if canonical and canonical in self._nodes:
+            return self._nodes[canonical]
             
-        return self._nodes[normalized_type]
+        raise KeyError(f"Unknown node type: {node_type}. Available types: {list(self._nodes.keys())}")
     
     def has_node_type(self, node_type: str) -> bool:
         """
@@ -349,5 +361,12 @@ def list_available_nodes() -> List[str]:
 # ALIAS REGISTRATION
 # Register whatsapp-send as an alias for whatsapp_send to support existing workflow JSONs
 from .whatsapp_nodes import WhatsAppSendNode
+from .ai_agent_node import AIAgentNode
 NODE_REGISTRY["whatsapp-send"] = WhatsAppSendNode
 node_registry._nodes["whatsapp-send"] = WhatsAppSendNode
+NODE_REGISTRY["ai_chat"] = AIAgentNode
+NODE_REGISTRY["ai-chat"] = AIAgentNode
+NODE_REGISTRY["ai-agent"] = AIAgentNode
+node_registry._nodes["ai_chat"] = AIAgentNode
+node_registry._nodes["ai-chat"] = AIAgentNode
+node_registry._nodes["ai-agent"] = AIAgentNode

@@ -1376,11 +1376,11 @@
         const el = document.createElement('div');
         el.className = 'workflow-node';
         el.id = n.id;
-        el.style.left = n.left;
-        el.style.top = n.top;
+        el.style.left = typeof n.left === 'string' ? n.left : ((n.left || n.x || 100) + 'px');
+        el.style.top = typeof n.top === 'string' ? n.top : ((n.top || n.y || 100) + 'px');
         el.dataset.type = n.type;
         // Handle config: it might be an object in the state or a string stringified
-        let conf = n.config;
+        let conf = n.config || {};
         if (typeof conf === 'string') {
             el.dataset.config = conf;
             try { conf = JSON.parse(conf); } catch (e) { conf = {}; }
@@ -1800,7 +1800,16 @@
         // TAB CONTENT WRAPPERS
 
         // 1. IDENTITY
-        html += `<div id="tab-identity" class="agent-tab-content" style="display:${activeTab === 'identity' ? 'block' : 'none'}"><div class="prop-group"><label class="prop-label">Agent Name</label><input class="prop-input" value="${config.agent_name || 'AI Agent'}" onchange="updateNodeField('${nodeId}', 'agent_name', this.value); updateNodeLabel('${nodeId}', this.value)"><div class="prop-hint">The name displayed on the node functionality.</div></div><div class="prop-group"><label class="prop-label">Role</label><input class="prop-input" placeholder="e.g. Research Assistant" value="${config.role || ''}" onchange="updateNodeField('${nodeId}', 'role', this.value)"></div><div class="prop-group"><label class="prop-label">Goal</label><textarea class="prop-textarea" style="height:80px;" placeholder="What is the agent's primary objective?" onchange="updateNodeField('${nodeId}', 'goal', this.value)">${config.goal || ''}</textarea></div><div class="prop-group"><label class="prop-label">AI Brain (Credential)</label><!-- Reuse generic credential selector logic if possible or hardcode for now --><select class="prop-select" onchange="updateNodeField('${nodeId}', 'credential_id', this.value)"><option value="">Select Brain...</option><option value="cred_openai" ${config.credential_id === 'cred_openai' ? 'selected' : ''}>OpenAI GPT-4o</option><option value="cred_ollama" ${config.credential_id === 'cred_ollama' ? 'selected' : ''}>Local Ollama</option></select><div class="prop-hint">Select the model provider (Brain).</div></div></div>`;
+        const agentModelContainerId = `agent-model-container-${nodeId}`;
+        const agentCredContainerId = `agent-cred-container-${nodeId}`;
+        html += `<div id="tab-identity" class="agent-tab-content" style="display:${activeTab === 'identity' ? 'block' : 'none'}"><div class="prop-group"><label class="prop-label">Agent Name</label><input class="prop-input" value="${config.agent_name || 'AI Agent'}" onchange="updateNodeField('${nodeId}', 'agent_name', this.value); updateNodeLabel('${nodeId}', this.value)"><div class="prop-hint">The name displayed on the node functionality.</div></div><div class="prop-group"><label class="prop-label">Role</label><input class="prop-input" placeholder="e.g. Research Assistant" value="${config.role || ''}" onchange="updateNodeField('${nodeId}', 'role', this.value)"></div><div class="prop-group"><label class="prop-label">Goal</label><textarea class="prop-textarea" style="height:80px;" placeholder="What is the agent's primary objective?" onchange="updateNodeField('${nodeId}', 'goal', this.value)">${config.goal || ''}</textarea></div><div class="prop-group"><label class="prop-label">AI Credential</label><div id="${agentCredContainerId}">Loading credentials...</div></div><div class="prop-group"><label class="prop-label">AI Model</label><div id="${agentModelContainerId}">Loading models...</div></div></div>`;
+
+        setTimeout(() => {
+            const credContainer = document.getElementById(agentCredContainerId);
+            if (credContainer) {
+                renderCredentialSelect({ credential_type: 'ai_provider' }, config.credential_id, credContainer, nodeId, 'credential_id');
+            }
+        }, 0);
 
         // 2. PROMPTS
         html += `<div id="tab-prompts" class="agent-tab-content" style="display:${activeTab === 'prompts' ? 'block' : 'none'}"><div class="prop-group"><label class="prop-label">System Prompt</label><textarea class="prop-textarea" style="height:150px; font-family:monospace; font-size:12px; line-height:1.4;" placeholder="You are a helpful assistant..." onchange="updateNodeField('${nodeId}', 'system_prompt', this.value)">${config.system_prompt || ''}</textarea><div class="prop-hint">Core instructions. Available vars: &#123;&#123; $json.foo &#125;&#125;</div></div><div class="prop-group"><label class="prop-label">User Prompt / Input</label><div style="display:flex; gap:8px; margin-bottom:5px;"><button class="pill-btn tiny">Insert Variable</button></div><textarea class="prop-textarea" style="height:100px;" placeholder="Question or Task..." onchange="updateNodeField('${nodeId}', 'user_prompt', this.value)">${config.user_prompt || ''}</textarea></div></div>`;
@@ -1943,6 +1952,142 @@
         }
     }
 
+    let aiModelsCache = null;
+
+    async function fetchAIModels() {
+        if (aiModelsCache && (Date.now() - aiModelsCache.timestamp < 15000)) {
+            return aiModelsCache.data;
+        }
+        try {
+            const res = await fetch('/api/v1/ai/models/');
+            if (res.ok) {
+                const data = await res.json();
+                aiModelsCache = { data: data, timestamp: Date.now() };
+                return data;
+            }
+        } catch (e) {
+            console.warn("Failed to fetch AI models:", e);
+        }
+        return { provider: "unknown", default_model: "", available_models: [] };
+    }
+
+    window.fetchAIModels = fetchAIModels;
+
+    async function renderModelSelectContainer(containerId, nodeId, fieldKey, currentValue) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const data = await fetchAIModels();
+        const models = data.available_models || [];
+        const defaultModel = data.default_model || "";
+        const activeModel = currentValue || defaultModel;
+
+        let optionsHtml = "";
+        if (models.length === 0) {
+            optionsHtml = `<option value="${activeModel}" selected>${activeModel || 'No models discovered'}</option>`;
+        } else {
+            models.forEach(m => {
+                const selected = (m === activeModel) ? 'selected' : '';
+                optionsHtml += `<option value="${m}" ${selected}>${m}</option>`;
+            });
+            if (activeModel && !models.includes(activeModel)) {
+                optionsHtml += `<option value="${activeModel}" selected>${activeModel} (saved)</option>`;
+            }
+        }
+
+        const selectId = `model-select-${nodeId}-${fieldKey}`;
+        container.innerHTML = `
+            <select id="${selectId}" class="prop-select" onchange="updateNodeConfig('${nodeId}', '${fieldKey}', this.value)">
+                ${optionsHtml}
+            </select>
+            <div style="font-size:11px; color:#6B7280; margin-top:4px;">
+                Active Provider: <strong style="text-transform: capitalize;">${data.provider || 'configured'}</strong>
+            </div>
+        `;
+
+        const selectEl = document.getElementById(selectId);
+        if (selectEl && !currentValue && selectEl.value) {
+            updateNodeConfig(nodeId, fieldKey, selectEl.value);
+        }
+    }
+
+    window.renderModelSelectContainer = renderModelSelectContainer;
+
+    const PROVIDER_MODELS = {
+        gemini: [
+            "gemini-flash-latest",
+            "gemini-3.5-flash",
+            "gemini-3.6-flash",
+            "gemini-flash-lite-latest",
+            "gemini-pro-latest"
+        ],
+        ollama: [
+            "llama3:8b",
+            "llama3:latest",
+            "mistral:latest",
+            "gemma:7b"
+        ]
+    };
+
+    async function updateModelDropdownForCredential(nodeId, credentialId, savedModel) {
+        const modelContainerId = `agent-model-container-${nodeId}`;
+        const container = document.getElementById(modelContainerId);
+        if (!container) return;
+
+        const creds = await loadCredentials('ai_provider');
+        let selectedCred = creds.find(c => String(c.id) === String(credentialId));
+
+        if (!selectedCred && creds.length > 0) {
+            selectedCred = creds[0];
+        }
+
+        const rawType = selectedCred ? (selectedCred.type || selectedCred.provider || '') : '';
+        const rawName = selectedCred ? (selectedCred.name || '') : '';
+        const isOllama = rawType.toLowerCase().includes('ollama') || rawName.toLowerCase().includes('ollama');
+        const providerKey = isOllama ? 'ollama' : 'gemini';
+
+        let availableModels = [...PROVIDER_MODELS[providerKey]];
+
+        // Validate savedModel against provider's available models
+        let validModel = savedModel;
+        if (!validModel || !availableModels.includes(validModel)) {
+            validModel = availableModels[0];
+            updateNodeConfig(nodeId, 'model', validModel);
+        }
+
+        // REQUIRED LOGGING
+        const credLogStr = selectedCred ? `${selectedCred.name} (${selectedCred.id})` : `None (${credentialId || 'N/A'})`;
+        console.log(`Credential: ${credLogStr}`);
+        console.log(`Provider: ${providerKey}`);
+        console.log(`Available Models:`, availableModels);
+        console.log(`Selected Model: ${validModel}`);
+
+        let optionsHtml = '';
+        availableModels.forEach(m => {
+            const selected = (m === validModel) ? 'selected' : '';
+            optionsHtml += `<option value="${m}" ${selected}>${m}</option>`;
+        });
+
+        const selectId = `model-select-${nodeId}-model`;
+        container.innerHTML = `
+            <select id="${selectId}" class="prop-select" style="margin-bottom:4px;">
+                ${optionsHtml}
+            </select>
+            <div style="font-size:11px; color:#6B7280; margin-top:4px;">
+                Active Provider: <strong style="text-transform: capitalize;">${providerKey}</strong>
+            </div>
+        `;
+
+        const selectEl = document.getElementById(selectId);
+        if (selectEl) {
+            selectEl.value = validModel;
+            selectEl.onchange = function() {
+                updateNodeConfig(nodeId, 'model', this.value);
+                console.log(`Selected Model: ${this.value}`);
+            };
+        }
+    }
+
     async function renderCredentialSelect(field, currentValue, container, nodeId, fieldKey) {
         container.innerHTML = '<div style="font-size:12px; color:#6b7280;">Loading credentials...</div>';
 
@@ -1956,23 +2101,15 @@
         }
 
         creds.forEach(c => {
-            const selected = c.id === currentValue ? 'selected' : '';
+            const selected = String(c.id) === String(currentValue) ? 'selected' : '';
             optionsHtml += `<option value="${c.id}" ${selected}>${c.name} (${c.type})</option>`;
         });
 
-        // Add "Add New" link
         const addNewLink = `/credentials/`;
-
-        // Safe onclick handler that calls updateNodeConfig globally
-        // We use a global helper or just standard html
-
         const selectId = `select-${nodeId}-${fieldKey}`;
 
-        // We need to bind the onchange event correctly. 
-        // Since this is async HTML injection, we can use the global updateNodeConfig.
-
         container.innerHTML = `
-            <select id="${selectId}" class="prop-input" onchange="updateNodeConfig('${nodeId}', '${fieldKey}', this.value)" style="margin-bottom: 4px;">
+            <select id="${selectId}" class="prop-input" style="margin-bottom: 4px;">
                 ${optionsHtml}
             </select>
             <div style="text-align:right;">
@@ -1980,9 +2117,37 @@
             </div>
         `;
 
-        // Re-apply value if needed (though selected attribute handles it)
         const selectEl = document.getElementById(selectId);
-        if (selectEl && currentValue) selectEl.value = currentValue;
+        let activeCredId = currentValue;
+
+        if (selectEl) {
+            if (currentValue) {
+                selectEl.value = currentValue;
+            } else if (creds.length > 0) {
+                // Auto-assign first credential if none selected
+                const firstCred = creds[0];
+                activeCredId = firstCred.id;
+                updateNodeConfig(nodeId, fieldKey, firstCred.id);
+                updateNodeConfig(nodeId, 'credential_name', firstCred.name);
+                selectEl.value = firstCred.id;
+            }
+
+            selectEl.onchange = function() {
+                const selectedCredId = this.value;
+                const foundCred = creds.find(c => String(c.id) === String(selectedCredId));
+                updateNodeConfig(nodeId, fieldKey, selectedCredId);
+                if (foundCred) {
+                    updateNodeConfig(nodeId, 'credential_name', foundCred.name);
+                }
+                const node = document.getElementById(nodeId);
+                const conf = JSON.parse(node ? node.dataset.config || '{}' : '{}');
+                updateModelDropdownForCredential(nodeId, selectedCredId, conf.model);
+            };
+        }
+
+        const node = document.getElementById(nodeId);
+        const conf = JSON.parse(node ? node.dataset.config || '{}' : '{}');
+        updateModelDropdownForCredential(nodeId, activeCredId, conf.model);
     }
 
     function toggleAgentTool(nodeId, toolName) {
@@ -2019,6 +2184,11 @@
         const type = node.dataset.type;
         const def = NODE_LIBRARY[type] || { label: type, category: 'Other', fields: [] }; // Lookup definition
         let config = JSON.parse(node.dataset.config || '{}');
+
+        if (type === 'ai_agent' || type === 'ai-chat' || type === 'ai_chat' || type === 'chat-ai' || type === 'chat_ai') {
+            panelContent.innerHTML = renderAgentNodeProps(nodeId, def, config);
+            return;
+        }
 
         let html = `<div style="margin-bottom:24px; border-bottom:1px solid #F3F4F6; padding-bottom:12px;"><div style="font-size:16px; font-weight:700; color:#1F2937;">${def.display_name || def.label || type}</div><div style="font-size:12px; color:#6B7280;">${nodeId}</div></div><!-- Standard Label Field --><div class="prop-group"><label class="prop-label">Node Label</label><input class="prop-input" value="${node.querySelector('.node-title-text').innerText}" oninput="updateNodeLabel('${nodeId}', this.value)"></div><hr style="border:0; border-top:1px solid #F3F4F6; margin:20px 0;">`;
 
@@ -2106,6 +2276,17 @@
                         if (container) {
                             renderCredentialSelect(field, config[fieldKey], container, nodeId, fieldKey);
                         }
+                    }, 0);
+                    continue;
+                }
+
+                // AI MODEL SELECT (Dynamic Provider Discovery)
+                if (fieldKey === 'model') {
+                    const containerId = `model-container-${nodeId}-${fieldKey}`;
+                    html += `<div id="${containerId}">Loading available models...</div></div>`;
+
+                    setTimeout(() => {
+                        renderModelSelectContainer(containerId, nodeId, fieldKey, config[fieldKey]);
                     }, 0);
                     continue;
                 }
@@ -2294,7 +2475,9 @@
 
         // RE-RENDER properties panel if we changed a field that might be a dependency
         if (event && event.target && (event.target.tagName === 'SELECT' || event.target.type === 'checkbox' || key === 'cases')) {
-            renderProperties(id);
+            if (key !== 'credential_id' && key !== 'model') {
+                renderProperties(id);
+            }
         }
     }
 

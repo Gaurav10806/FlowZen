@@ -99,6 +99,24 @@ class SecurityAuditMiddleware(MiddlewareMixin):
     Audit trail for compliance and incident response
     """
     
+    def _sanitize_path(self, path_info):
+        """Mask sensitive query parameters before logging."""
+        if '?' not in path_info:
+            return path_info
+        path, query = path_info.split('?', 1)
+        params = query.split('&')
+        masked_params = []
+        for param in params:
+            if '=' in param:
+                k, v = param.split('=', 1)
+                if any(s in k.lower() for s in ['token', 'secret', 'key', 'password', 'auth']):
+                    masked_params.append(f"{k}=[MASKED]")
+                else:
+                    masked_params.append(param)
+            else:
+                masked_params.append(param)
+        return f"{path}?{'&'.join(masked_params)}"
+
     def process_request(self, request):
         # Log sensitive operations
         sensitive_paths = [
@@ -109,8 +127,9 @@ class SecurityAuditMiddleware(MiddlewareMixin):
         ]
         
         if any(request.path.startswith(path) for path in sensitive_paths):
+            safe_path = self._sanitize_path(request.get_full_path())
             logger.info(
-                f"AUDIT: {request.method} {request.path} "
+                f"AUDIT: {request.method} {safe_path} "
                 f"user={getattr(request.user, 'id', 'anonymous')} "
                 f"ip={request.META.get('REMOTE_ADDR')} "
                 f"user_agent={request.META.get('HTTP_USER_AGENT', '')[:100]}"

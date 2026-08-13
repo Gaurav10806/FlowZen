@@ -19,7 +19,7 @@ window.NODE_REGISTRY["ai_agent"] = {
         credential_id: "",
         system_prompt: "You are a helpful AI agent.",
         user_prompt: "{{ input.json.text }}",
-        model: "gpt-4o",
+        model: "",
         temperature: 0.7,
         max_tokens: 1024,
         max_steps: 5,
@@ -31,7 +31,7 @@ window.NODE_REGISTRY["ai_agent"] = {
         credential_id: { type: "credential", credential_type: "ai_provider", title: "AI Credential" },
         system_prompt: { type: "textarea", title: "System Prompt" },
         user_prompt: { type: "textarea", title: "User Prompt" },
-        model: { type: "select", options: ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"], title: "Model" },
+        model: { type: "select", options: [], title: "Model" },
         temperature: { type: "number", min: 0, max: 2, step: 0.1, title: "Temperature" },
         max_tokens: { type: "number", title: "Max Tokens" },
         max_steps: { type: "number", title: "Max Steps" },
@@ -43,7 +43,7 @@ window.NODE_REGISTRY["ai_agent"] = {
         { key: "credential_id", type: "credential", label: "AI Credential", credential_type: "ai_provider" },
         { key: "system_prompt", type: "textarea", label: "System Prompt" },
         { key: "user_prompt", type: "textarea", label: "User Prompt" },
-        { key: "model", type: "select", options: ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"], label: "Model" },
+        { key: "model", type: "select", options: [], label: "Model" },
         { key: "temperature", type: "number", min: 0, max: 2, step: 0.1, label: "Temperature" },
         { key: "max_tokens", type: "number", label: "Max Tokens" },
         { key: "max_steps", type: "number", label: "Max Steps" },
@@ -67,12 +67,12 @@ window.NODE_REGISTRY["model_openai"] = {
     outputs: ["chat_model"],
     defaultConfig: {
         credential_id: "",
-        model: "gpt-4o",
+        model: "",
         temperature: 0.7
     },
     fields: [
         { key: "credential_id", type: "credential", label: "Credential", credential_type: "ai_provider" },
-        { key: "model", type: "select", options: ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"], label: "Model" },
+        { key: "model", type: "select", options: [], label: "Model" },
         { key: "temperature", type: "number", min: 0, max: 2, step: 0.1, label: "Temperature" }
     ]
 };

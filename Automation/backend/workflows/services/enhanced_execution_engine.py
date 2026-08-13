@@ -275,7 +275,7 @@ class EnhancedExecutionEngine:
         # Get credential if needed
         credential = None
         credential_data = None
-        credential_id = node_config.get("credential_id")
+        credential_id = node_config.get("credential_id") or node_config.get("config", {}).get("credential_id")
         if credential_id:
             try:
                 credential = Credential.objects.get(

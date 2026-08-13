@@ -300,7 +300,7 @@ class EnhancedNodeLibrary {
             tags: ['ai', 'agent', 'automation', 'tools'],
             config: {
                 credential_id: { type: 'credential_select', credential_type: 'ai_provider', title: 'AI Provider' },
-                model: { type: 'string', default: 'gpt-4', title: 'Model' },
+                model: { type: 'select', options: [], default: '', title: 'Model' },
                 temperature: { type: 'slider', min: 0, max: 2, default: 0.7, title: 'Temperature' },
                 max_tokens: { type: 'number', default: 2000, title: 'Max Tokens' },
                 system_prompt: { type: 'string', widget: 'textarea', title: 'System Prompt', default: 'You are a helpful AI assistant.' },
@@ -314,12 +314,12 @@ class EnhancedNodeLibrary {
             name: 'OpenAI GPT',
             category: 'ai',
             icon: 'fas fa-robot',
-            description: 'Generate text using OpenAI GPT models',
+            description: 'Generate text using AI models',
             color: '#10b981',
             inputs: ['prompt', 'context'],
             outputs: ['text', 'usage'],
             config: {
-                model: { type: 'select', options: ['gpt-4', 'gpt-3.5-turbo'], default: 'gpt-4' },
+                model: { type: 'select', options: [], default: '' },
                 temperature: { type: 'slider', min: 0, max: 2, default: 0.7 },
                 max_tokens: { type: 'number', default: 1000 }
             },

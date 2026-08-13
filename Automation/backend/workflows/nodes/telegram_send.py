@@ -95,7 +95,10 @@ class TelegramSendNode(ActionNode):
             if isinstance(creds, str) and encryption_service:
                 try:
                     decrypted = encryption_service.decrypt_credential_str(creds)
-                    creds = json.loads(decrypted)
+                    if isinstance(decrypted, dict):
+                        creds = decrypted
+                    elif isinstance(decrypted, str):
+                        creds = json.loads(decrypted)
                 except Exception as e:
                     self.logger.error(f"Failed to decrypt credential: {e}")
                     # Try to parse as raw JSON if decryption fails (fallback for unencrypted dev data)

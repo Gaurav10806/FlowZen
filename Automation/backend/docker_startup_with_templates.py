@@ -281,14 +281,28 @@ def create_superuser_if_needed():
         return False
 
 def start_django_server():
-    """Start Django development server"""
-    log("🚀 Starting Django server...")
+    """Start Django server using Gunicorn/Uvicorn in production, or runserver in debug mode."""
+    log("🚀 Starting Django application server...")
+    
+    port = os.environ.get("PORT", "8000")
+    bind_address = f"0.0.0.0:{port}"
+    is_debug = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
     
     try:
-        # Use runserver for stability in this environment
-        cmd = [
-            sys.executable, 'manage.py', 'runserver', '0.0.0.0:8000'
-        ]
+        if is_debug:
+            log(f"🛠️ Starting Django development server on {bind_address} (runserver)...")
+            cmd = [sys.executable, 'manage.py', 'runserver', bind_address]
+        else:
+            log(f"⚡ Starting Gunicorn with Uvicorn worker on {bind_address} (Production ASGI)...")
+            cmd = [
+                "gunicorn", "project.asgi:application",
+                "-k", "uvicorn.workers.UvicornWorker",
+                "--bind", bind_address,
+                "--workers", os.environ.get("WEB_CONCURRENCY", "4"),
+                "--timeout", "120",
+                "--access-logfile", "-",
+                "--error-logfile", "-"
+            ]
         
         subprocess.run(cmd)
         

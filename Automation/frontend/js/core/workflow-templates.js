@@ -294,7 +294,7 @@ class WorkflowTemplates {
                         type: 'openai',
                         position: { x: 300, y: 200 },
                         config: { 
-                            model: 'gpt-4',
+                            model: '',
                             prompt: 'Generate engaging content about: {{input.topic}}',
                             temperature: 0.7
                         }
@@ -346,7 +346,7 @@ class WorkflowTemplates {
                         type: 'openai',
                         position: { x: 500, y: 200 },
                         config: { 
-                            model: 'gpt-3.5-turbo',
+                            model: '',
                             prompt: 'Personalize this email for {{name}}: {{template}}'
                         }
                     },
@@ -469,7 +469,7 @@ class WorkflowTemplates {
                         type: 'openai',
                         position: { x: 300, y: 200 },
                         config: { 
-                            model: 'gpt-4',
+                            model: '',
                             prompt: 'Generate an engaging social media post about {{topic}}'
                         }
                     },

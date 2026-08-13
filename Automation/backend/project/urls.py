@@ -30,22 +30,25 @@ from workflows.view_modules.google_calendar_oauth_views import (
 from workflows.view_modules.execution_history_views import execution_metrics
 from workflows.triggers.telegram_handler import telegram_webhook_view, telegram_health_view
 
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
-from rest_framework import permissions
+try:
+    from drf_yasg.views import get_schema_view
+    from drf_yasg import openapi
+    from rest_framework import permissions
 
-schema_view = get_schema_view(
-   openapi.Info(
-      title="FlowZen API",
-      default_version='v1',
-      description="Ethereal Automation Platform API",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@flowzen.local"),
-      license=openapi.License(name="BSD License"),
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
-)
+    schema_view = get_schema_view(
+       openapi.Info(
+          title="FlowZen API",
+          default_version='v1',
+          description="Ethereal Automation Platform API",
+          terms_of_service="https://www.google.com/policies/terms/",
+          contact=openapi.Contact(email="contact@flowzen.local"),
+          license=openapi.License(name="BSD License"),
+       ),
+       public=True,
+       permission_classes=(permissions.AllowAny,),
+    )
+except Exception:
+    schema_view = None
 
 
 # REST API router
@@ -93,8 +96,8 @@ urlpatterns = [
     path("workflow/share/<uuid:workflow_id>/", workflow_views.public_workflow_view, name="public-workflow-view"),
 
     # Documentation
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui') if schema_view else path('swagger/', lambda r: JsonResponse({"info": "Swagger UI disabled"}), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc') if schema_view else path('redoc/', lambda r: JsonResponse({"info": "ReDoc UI disabled"}), name='schema-redoc'),
 
     path("api/v1/dlq/items/", workflow_views.DLQListView.as_view(), name="dlq-items"),
     path("api/v1/dlq/items/<uuid:dlq_id>/", workflow_views.DLQDetailView.as_view(), name="dlq-item-detail"),

@@ -10,7 +10,7 @@ export default {
 
     defaultConfig: {
         credential_id: "",
-        model: "gpt-4o",
+        model: "",
         temperature: 0.7,
         max_steps: 5,
         response_mode: "text",
@@ -30,11 +30,7 @@ export default {
         model: {
             widget: "select",
             label: "Model",
-            options: [
-                { label: "GPT-4o", value: "gpt-4o" },
-                { label: "GPT-4 Turbo", value: "gpt-4-turbo" },
-                { label: "GPT-3.5 Turbo", value: "gpt-3.5-turbo" }
-            ],
+            options: [],
             description: "Select the AI model to use"
         },
         temperature: {

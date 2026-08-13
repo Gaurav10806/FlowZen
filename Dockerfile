@@ -29,16 +29,16 @@ COPY Automation/frontend/ ./frontend/
 COPY Automation/backend/docker_startup_with_templates.py .
 COPY Automation/backend/docker_healthcheck.py .
 
-# Create directories for template and credential storage
-RUN mkdir -p /app/media /app/templates_storage /app/credentials_storage
+# Create directories for media, static, template and credential storage
+RUN mkdir -p /app/media /app/staticfiles /app/templates_storage /app/credentials_storage
 
-# Collect static assets (can be skipped in dev by overriding the command)
+# Collect static assets
 RUN python manage.py collectstatic --noinput || true
 
-# Create non-root user for security
+# Create non-root user for security and assign ownership
 RUN adduser --disabled-password --gecos '' --uid 1000 appuser && \
     chown -R appuser:appuser /app && \
-    chmod 755 /app/templates_storage /app/credentials_storage
+    chmod 755 /app/media /app/staticfiles /app/templates_storage /app/credentials_storage
 USER appuser
 
 EXPOSE 8000

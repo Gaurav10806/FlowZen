@@ -228,6 +228,7 @@ class WorkflowSerializer(serializers.ModelSerializer):
                     if not isinstance(position, dict):
                         position = {"x": node_data.get("x", 0), "y": node_data.get("y", 0)}
                     
+                    cred_id = node_data.get("credential_id") or node_data.get("config", {}).get("credential_id")
                     try:
                         Node.objects.create(
                             workflow=workflow,
@@ -236,6 +237,7 @@ class WorkflowSerializer(serializers.ModelSerializer):
                             action_type=mapped_action_type,
                             config=node_data.get("config", {}),
                             position=position,
+                            credential_id=cred_id,
                             retry_backoff=node_data.get("retry_backoff", {}),
                             timeout=node_data.get("timeout"),
                         )
@@ -354,18 +356,24 @@ class WorkflowSerializer(serializers.ModelSerializer):
                     if not isinstance(position, dict):
                         position = {"x": node_data.get("x", 0), "y": node_data.get("y", 0)}
                     
+                    # Extract credential_id if present
+                    cred_id = node_data.get("credential_id") or node_data.get("config", {}).get("credential_id")
+                    node_defaults = {
+                        "label": label,
+                        "action_type": mapped_action_type,
+                        "config": node_data.get("config", {}),
+                        "position": position,
+                        "retry_backoff": node_data.get("retry_backoff", {}),
+                        "timeout": node_data.get("timeout"),
+                    }
+                    if cred_id:
+                        node_defaults["credential_id"] = cred_id
+
                     try:
                         node, created = Node.objects.update_or_create(
                             workflow=instance,
                             node_id=node_id,
-                            defaults={
-                                "label": label,
-                                "action_type": mapped_action_type,
-                                "config": node_data.get("config", {}),
-                                "position": position,
-                                "retry_backoff": node_data.get("retry_backoff", {}),
-                                "timeout": node_data.get("timeout"),
-                            }
+                            defaults=node_defaults
                         )
                         existing_node_ids.add(node_id)
                     except Exception as e:

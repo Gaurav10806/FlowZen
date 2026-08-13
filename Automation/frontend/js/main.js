@@ -879,9 +879,7 @@ class ConfigManager {
                     <div class="form-group">
                         <label>Model</label>
                         <select id="config-model" class="form-control">
-                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                            <option value="gpt-4">GPT-4</option>
-                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            <option value="">Loading models...</option>
                         </select>
                     </div>
                     <div class="form-group">

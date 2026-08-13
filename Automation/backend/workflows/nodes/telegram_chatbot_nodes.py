@@ -43,7 +43,11 @@ def _get_bot_token(credential_id, input_data, context):
         # Strategy 1: decrypt then parse
         if enc:
             try:
-                parsed = json.loads(enc.decrypt_credential_str(creds))
+                decrypted = enc.decrypt_credential_str(creds)
+                if isinstance(decrypted, dict):
+                    parsed = decrypted
+                elif isinstance(decrypted, str):
+                    parsed = json.loads(decrypted)
             except Exception:
                 pass
         # Strategy 2: plain JSON string
