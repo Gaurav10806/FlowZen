@@ -137,10 +137,6 @@ MIDDLEWARE = [
 ]
 
 
-# Add WhiteNoise only in production
-if not DEBUG:
-    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
-
 ROOT_URLCONF = "project.urls"
 
 TEMPLATES = [
