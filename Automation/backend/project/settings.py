@@ -588,13 +588,13 @@ if EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend":
         )
 
 # ================================
-# GMAIL OAUTH CONFIGURATION - STRICT VALIDATION
+# GMAIL OAUTH CONFIGURATION (OPTIONAL - SMTP IS DEFAULT)
 # ================================
 
-# Gmail OAuth settings (Hardcoded for provided credentials)
-GMAIL_OAUTH_ENABLED = True
-GMAIL_OAUTH_CLIENT_ID = os.environ.get("GMAIL_OAUTH_CLIENT_ID", "your-client-id")
-GMAIL_OAUTH_CLIENT_SECRET = os.environ.get("GMAIL_OAUTH_CLIENT_SECRET", "your-client-secret")
+# Gmail OAuth settings (Optional - default to empty unless explicitly enabled)
+ENABLE_GMAIL_OAUTH = os.environ.get("ENABLE_GMAIL_OAUTH", "False").lower() == "true"
+GMAIL_OAUTH_CLIENT_ID = os.environ.get("GMAIL_OAUTH_CLIENT_ID", "").strip()
+GMAIL_OAUTH_CLIENT_SECRET = os.environ.get("GMAIL_OAUTH_CLIENT_SECRET", "").strip()
 GMAIL_OAUTH_REDIRECT_URI = os.environ.get("GMAIL_OAUTH_REDIRECT_URI", f"{SITE_URL}/api/v1/gmail-oauth/callback/")
 
 # Google Calendar OAuth settings
@@ -606,28 +606,26 @@ if not CREDENTIALS_MASTER_KEY:
     try:
         from cryptography.fernet import Fernet
         CREDENTIALS_MASTER_KEY = Fernet.generate_key().decode()
-        print("⚠️  Generated new CREDENTIALS_MASTER_KEY - set this in environment for production")
     except Exception:
         CREDENTIALS_MASTER_KEY = base64.urlsafe_b64encode(os.urandom(32)).decode()
 
-# CRITICAL: STRICT Gmail OAuth validation - NO SILENT FALLBACKS
-_gmail_oauth_configured = bool(GMAIL_OAUTH_CLIENT_ID and GMAIL_OAUTH_CLIENT_SECRET)
+# Gmail OAuth status
+_gmail_oauth_configured = bool(ENABLE_GMAIL_OAUTH and GMAIL_OAUTH_CLIENT_ID and GMAIL_OAUTH_CLIENT_SECRET)
 
-# STRICT VALIDATION: If Gmail OAuth env vars exist, they MUST be valid (skip in dev with placeholder defaults)
-if (GMAIL_OAUTH_CLIENT_ID or GMAIL_OAUTH_CLIENT_SECRET) and DEBUG is False:
+# Validate Gmail OAuth ONLY if explicitly enabled
+if ENABLE_GMAIL_OAUTH and DEBUG is False:
     if not GMAIL_OAUTH_CLIENT_ID:
         raise ImproperlyConfigured(
-            "GMAIL_OAUTH_CLIENT_ID is required when Gmail OAuth is configured. "
+            "GMAIL_OAUTH_CLIENT_ID is required when ENABLE_GMAIL_OAUTH=True. "
             "Set GMAIL_OAUTH_CLIENT_ID environment variable."
         )
     
     if not GMAIL_OAUTH_CLIENT_SECRET:
         raise ImproperlyConfigured(
-            "GMAIL_OAUTH_CLIENT_SECRET is required when Gmail OAuth is configured. "
+            "GMAIL_OAUTH_CLIENT_SECRET is required when ENABLE_GMAIL_OAUTH=True. "
             "Set GMAIL_OAUTH_CLIENT_SECRET environment variable."
         )
     
-    # Validate they are not placeholder values
     _invalid_placeholders = [
         "<REAL_GOOGLE_CLIENT_ID>", 
         "<REAL_GOOGLE_CLIENT_SECRET>", 
@@ -642,22 +640,14 @@ if (GMAIL_OAUTH_CLIENT_ID or GMAIL_OAUTH_CLIENT_SECRET) and DEBUG is False:
             f"GMAIL_OAUTH_CLIENT_ID contains placeholder value: {GMAIL_OAUTH_CLIENT_ID}. "
             "Please set a real Google OAuth Client ID."
         )
-    
-    if GMAIL_OAUTH_CLIENT_SECRET in _invalid_placeholders:
-        raise ImproperlyConfigured(
-            f"GMAIL_OAUTH_CLIENT_SECRET contains placeholder value. "
-            "Please set a real Google OAuth Client Secret."
-        )
 
-# STRICT LOGGING: Clear status messages - NO SILENT FALLBACKS
+# Logging status
 if _gmail_oauth_configured:
-    print("[OK] Gmail OAuth configured - Gmail addresses will use OAuth API")
+    print("[OK] Gmail OAuth enabled - OAuth sending available")
     print(f"[OK] Gmail OAuth Client ID: {GMAIL_OAUTH_CLIENT_ID[:20]}...")
     print(f"[OK] Gmail OAuth Redirect URI: {GMAIL_OAUTH_REDIRECT_URI}")
-else:
-    print("[ERROR] Gmail OAuth not configured")
-    print("[ERROR] Gmail addresses will FAIL - no fallback to SMTP")
-    print("[ERROR] Set GMAIL_OAUTH_CLIENT_ID and GMAIL_OAUTH_CLIENT_SECRET to enable Gmail sending")
+elif EMAIL_HOST:
+    print(f"[OK] Email configured via SMTP (Host: {EMAIL_HOST}, User: {EMAIL_HOST_USER or 'Not set'})")
 
-# CRITICAL: Export Gmail OAuth status for runtime checks
+# Export status for runtime checks
 GMAIL_OAUTH_ENABLED = _gmail_oauth_configured
