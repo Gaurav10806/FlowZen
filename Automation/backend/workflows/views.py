@@ -2454,9 +2454,11 @@ class GDPRDataRequestViewSet(viewsets.ModelViewSet):
 
 
 @ensure_csrf_cookie
-@login_required
 def dashboard_view(request):
     """Render the main dashboard page with live metrics."""
+    if not request.user.is_authenticated:
+        from django.shortcuts import redirect
+        return redirect("/login/")
     try:
         from django.shortcuts import render
         from django.utils import timezone
